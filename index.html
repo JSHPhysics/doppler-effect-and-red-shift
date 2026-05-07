@@ -1,0 +1,2332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Doppler & Redshift">
+<meta name="theme-color" content="#ffffff">
+<title>Doppler & Cosmological Redshift — JSHPhysics</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f5f5f5;
+  --surface-2: #eaeaea;
+  --border: #c8c8c8;
+  --border-strong: #1a1a1a;
+  --text: #1a1a1a;
+  --muted: #555555;
+  --accent: #b45309;
+  --accent-soft: #fef3c7;
+  --blue: #2b6cb0;
+  --grey-mid: #888888;
+  --red: #c53030;
+  --focus: #2b6cb0;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+html, body { height: 100%; }
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-header {
+  padding: 4px 0 0 0;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mode-tagline {
+  margin: 4px 0 0 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  flex: 1;
+  min-height: 44px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  padding: 0 16px;
+}
+.tab[aria-selected="true"] {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+.tab:active { background: var(--surface-2); }
+.tab[aria-selected="true"]:active { background: #000; }
+.tab:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mode-section { display: none; }
+.mode-section.active {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.canvas-controls-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.canvas-wrap {
+  flex: 1 1 600px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+canvas.physics-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 7 / 4;
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: block;
+  touch-action: manipulation;
+}
+
+#cosmo-canvas { aspect-ratio: 7 / 3; }
+
+.controls {
+  flex: 0 1 340px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.control-group h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+label.slider-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  margin-bottom: 14px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+label.slider-label:last-child { margin-bottom: 0; }
+
+.slider-label .label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+.slider-label .label-text { font-weight: 500; }
+.slider-label .label-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+input[type="range"]:focus { outline: none; }
+input[type="range"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 30px;
+  width: 30px;
+  margin-top: -13px;
+  border-radius: 15px;
+  background: var(--text);
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+input[type="range"]::-moz-range-thumb {
+  height: 30px;
+  width: 30px;
+  border-radius: 15px;
+  background: var(--text);
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+}
+
+select {
+  min-height: 44px;
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button.btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  flex: 1 0 auto;
+}
+button.btn:active { background: var(--surface-2); }
+button.btn[aria-pressed="true"], button.btn.primary {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+button.btn[aria-pressed="true"]:active, button.btn.primary:active { background: #000; }
+button.btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+button.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 16px;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.toggle-row input[type="checkbox"] {
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  accent-color: var(--text);
+}
+.toggle-row input[type="checkbox"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.readouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.readout {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  min-height: 64px;
+}
+
+.readout .label {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.readout .value {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  -webkit-user-select: text;
+  user-select: text;
+  letter-spacing: -0.01em;
+}
+.readout.primary {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.readout.primary .label { font-size: 16px; }
+.readout.primary .value { font-size: 28px; }
+.readout.full { grid-column: 1 / -1; }
+
+.shift-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.shift-indicator .swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.shift-indicator .arrow {
+  font-size: 18px;
+  margin-right: 2px;
+}
+
+.formula {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: "Cambria Math", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  margin-top: 10px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.formula .var { font-style: italic; }
+
+.compare-tooltip {
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+
+.spectrum-strip-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.spectrum-strip-wrap .strip-label {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.spectrum-strip-wrap canvas.spectrum-canvas {
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  display: block;
+}
+.spectrum-axis {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}
+
+.hubble-plot-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hubble-plot-wrap .strip-label {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+canvas#hubble-plot {
+  width: 100%;
+  height: 220px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: block;
+  background: #fafafa;
+  touch-action: manipulation;
+}
+
+footer.app-footer {
+  padding: 12px 0 4px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+footer .attribution {
+  -webkit-user-select: text;
+  user-select: text;
+}
+button.help-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 22px;
+  color: var(--text);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+button.help-btn:active { background: var(--surface-2); }
+button.help-btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 24px;
+}
+.modal h2 {
+  margin: 0 0 12px 0;
+  font-size: 22px;
+}
+.modal h3 {
+  margin: 18px 0 6px 0;
+  font-size: 18px;
+}
+.modal p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+.modal .key-line {
+  font-style: italic;
+  color: var(--muted);
+  border-left: 3px solid var(--accent);
+  padding: 6px 10px;
+  margin: 14px 0 0 0;
+  background: var(--surface);
+}
+.modal-close-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+.how-to {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 4px 14px;
+}
+.how-to summary {
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 16px;
+  -webkit-user-select: none;
+  user-select: none;
+  list-style-position: outside;
+}
+.how-to summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.how-to[open] summary { margin-bottom: 4px; }
+.how-to ol {
+  margin: 0 0 10px 0;
+  padding-left: 22px;
+}
+.how-to li {
+  margin-bottom: 6px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.how-to li strong { color: var(--text); }
+
+.hint {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+}
+.hint strong { color: var(--text); }
+.hint code {
+  background: var(--bg);
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.line-readings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  -webkit-user-select: text;
+  user-select: text;
+  padding: 6px 0 2px 0;
+  min-height: 26px;
+}
+.line-reading {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.line-reading .lr-name {
+  color: var(--muted);
+  font-weight: 600;
+}
+.line-reading strong {
+  font-weight: 700;
+  color: var(--text);
+}
+.line-reading.out-of-range {
+  opacity: 0.55;
+}
+.line-readings .placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.measurement-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.measurement-panel > h3 {
+  margin: 0 0 6px 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.measurement-panel .help-text {
+  font-size: 15px;
+  color: var(--text);
+  margin: 0 0 12px 0;
+  line-height: 1.55;
+}
+.measurement-panel .help-text em { color: var(--muted); }
+.formula-inline {
+  font-family: "Cambria Math", Georgia, serif;
+  font-style: italic;
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.calc-rows {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.cf-label {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+.calc-field input[type="number"],
+.calc-field select {
+  font: inherit;
+  font-size: 16px;
+  padding: 0 12px;
+  height: 44px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+  color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.calc-field input[type="number"]:focus-visible,
+.calc-field select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.calc-feedback {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 44px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.calc-feedback.correct {
+  border-color: #15803d;
+  background: #f0fdf4;
+}
+.calc-feedback.partial {
+  border-color: var(--accent);
+  background: #fffbeb;
+}
+.calc-feedback.error {
+  border-color: var(--red);
+  background: #fef2f2;
+}
+.calc-feedback.neutral {
+  font-style: italic;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab, button.btn, button.help-btn, .modal-overlay { transition: none !important; }
+  .pulse-anim { animation: none !important; }
+}
+
+@media (max-width: 760px) {
+  .app { padding: 8px 12px 12px 12px; }
+  .canvas-controls-row { flex-direction: column; }
+  .controls { flex: 1 1 auto; width: 100%; }
+  .canvas-wrap { flex: 1 1 auto; }
+  .readout .value { font-size: 20px; }
+  .readout.primary .value { font-size: 24px; }
+  .app-title { font-size: 19px; }
+  .mode-tagline { font-size: 15px; }
+  .calc-rows { grid-template-columns: 1fr; gap: 10px; }
+  .calc-rows button.btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <h1 class="app-title">Doppler effect &amp; cosmological redshift</h1>
+    <p class="mode-tagline" id="mode-tagline">Classical Doppler — a source moves through space; wavelengths shift on emission.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Simulation mode">
+    <button class="tab" id="tab-doppler" role="tab" aria-selected="true" aria-controls="doppler-mode">Classical Doppler</button>
+    <button class="tab" id="tab-cosmo" role="tab" aria-selected="false" aria-controls="cosmo-mode">Cosmological Redshift</button>
+  </nav>
+
+  <main>
+
+    <!-- ============ MODE A: CLASSICAL DOPPLER ============ -->
+    <section id="doppler-mode" class="mode-section active" role="tabpanel" aria-labelledby="tab-doppler">
+      <details class="how-to" open>
+        <summary>How to use this simulation</summary>
+        <ol>
+          <li>Move the <strong>Source velocity</strong> slider. Positive = source moves toward you (blueshift); negative = source moves away (redshift).</li>
+          <li>Watch the wavefronts compress in front and spread out behind. The spectrum strip below shifts in step.</li>
+          <li>The source pulses <span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:50%;vertical-align:middle;border:1px solid #15803d;"></span> <strong>green</strong> at every emission (a constant rate). The observer pulses <strong>blue or red</strong> at every arrival — its rate <em>differs</em> from the emission rate, and that difference <em>is</em> the Doppler shift you can see directly.</li>
+          <li>Press <strong>Pause</strong> when you want a stable picture to take a measurement.</li>
+          <li>Use the <strong>Measure &amp; calculate</strong> panel below to apply the formula yourself, then check.</li>
+        </ol>
+      </details>
+      <div class="canvas-controls-row">
+        <div class="canvas-wrap">
+          <canvas id="doppler-canvas" class="physics-canvas" aria-label="Animation of a moving source emitting circular wavefronts toward a stationary observer"></canvas>
+          <div class="spectrum-strip-wrap">
+            <div class="strip-label">Lab frame (rest-wavelength absorption lines)</div>
+            <canvas id="doppler-spectrum-lab" class="spectrum-canvas" aria-hidden="true"></canvas>
+            <div class="line-readings" id="dopp-lab-readings" aria-label="Lab-frame line wavelengths">
+              <span class="line-reading"><span class="lr-name">Hγ</span> <strong>434</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Hβ</span> <strong>486</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Mg b</span> <strong>517</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Na D</span> <strong>589</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Hα</span> <strong>656</strong> nm</span>
+            </div>
+            <div class="strip-label">Observed frame (lines shifted by z)</div>
+            <canvas id="doppler-spectrum-obs" class="spectrum-canvas" aria-hidden="true"></canvas>
+            <div class="line-readings" id="dopp-obs-readings" aria-label="Observed-frame line wavelengths"></div>
+            <div class="spectrum-axis"><span>400 nm</span><span>550 nm</span><span>700 nm</span></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <h3>Source</h3>
+            <label class="slider-label" for="dopp-velocity">
+              <span class="label-row">
+                <span class="label-text">Source velocity</span>
+                <span class="label-value" id="dopp-velocity-val">0.00 c</span>
+              </span>
+              <input type="range" id="dopp-velocity" min="-0.9" max="0.9" step="0.01" value="0">
+              <span style="font-size:13px;color:var(--muted);margin-top:2px;">+ = toward observer&nbsp;&nbsp; − = away</span>
+            </label>
+            <label class="slider-label" for="dopp-frequency">
+              <span class="label-row">
+                <span class="label-text">Source frequency (visual)</span>
+                <span class="label-value" id="dopp-frequency-val">4.0 Hz</span>
+              </span>
+              <input type="range" id="dopp-frequency" min="1" max="10" step="0.1" value="4">
+            </label>
+          </div>
+
+          <div class="control-group">
+            <h3>Playback</h3>
+            <div class="btn-row">
+              <button class="btn primary" id="dopp-play" aria-pressed="true">Pause</button>
+              <button class="btn" id="dopp-reset">Reset</button>
+            </div>
+            <div class="toggle-row" style="margin-top:10px;">
+              <input type="checkbox" id="dopp-emission-points">
+              <label for="dopp-emission-points">Show wavefront emission points</label>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>Live readouts</h3>
+            <div class="readouts">
+              <div class="readout">
+                <div class="label">Emitted λ₀</div>
+                <div class="value" id="dopp-lambda0">600 nm</div>
+              </div>
+              <div class="readout">
+                <div class="label">Observed λ′</div>
+                <div class="value" id="dopp-lambda-obs">600 nm</div>
+              </div>
+              <div class="readout">
+                <div class="label">Δλ = λ′ − λ₀</div>
+                <div class="value" id="dopp-dlambda">0 nm</div>
+              </div>
+              <div class="readout primary">
+                <div class="label">Redshift z</div>
+                <div class="value" id="dopp-z">0.000</div>
+              </div>
+              <div class="readout full">
+                <div class="label">Observed frequency f ′</div>
+                <div class="value" id="dopp-fobs">5.00 × 10¹⁴ Hz</div>
+              </div>
+              <div class="shift-indicator full" id="dopp-shift-indicator">
+                <span class="swatch" id="dopp-shift-swatch" style="background:#888;"></span>
+                <span class="arrow" id="dopp-shift-arrow">●</span>
+                <span id="dopp-shift-text">No shift (source stationary)</span>
+              </div>
+            </div>
+            <div class="formula"><span class="var">λ′</span> = <span class="var">λ₀</span> (1 + <span class="var">v<sub>r</sub></span>/<span class="var">c</span>) &nbsp;&nbsp;<span class="var">v<sub>r</sub></span> = radial recession velocity from observer</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="measurement-panel" id="dopp-measurement">
+        <h3>Measure &amp; calculate z</h3>
+        <p class="help-text">
+          Read off the observed wavelength of one absorption line from the line-readings strip above (e.g. Hα),
+          then apply <span class="formula-inline">z = (λ<sub>obs</sub> − λ<sub>rest</sub>) / λ<sub>rest</sub></span>
+          and check your answer.
+          <em>Tip: pause the animation first.</em>
+        </p>
+        <div class="calc-rows">
+          <label class="calc-field">
+            <span class="cf-label">Reference line (λ<sub>rest</sub>)</span>
+            <select id="dopp-calc-line">
+              <option value="434">Hγ — 434 nm</option>
+              <option value="486">Hβ — 486 nm</option>
+              <option value="517">Mg b — 517 nm</option>
+              <option value="589">Na D — 589 nm</option>
+              <option value="656" selected>Hα — 656 nm</option>
+            </select>
+          </label>
+          <label class="calc-field">
+            <span class="cf-label">Your λ<sub>obs</sub> (nm)</span>
+            <input type="number" id="dopp-calc-lobs" step="0.1" inputmode="decimal" placeholder="e.g. 600.0">
+          </label>
+          <label class="calc-field">
+            <span class="cf-label">Your calculated z</span>
+            <input type="number" id="dopp-calc-z" step="0.001" inputmode="decimal" placeholder="e.g. 0.000">
+          </label>
+          <button class="btn primary" id="dopp-calc-check">Check</button>
+        </div>
+        <div class="calc-feedback neutral" id="dopp-calc-feedback" aria-live="polite">
+          Read your λ<sub>obs</sub> from the observed strip, calculate z, then press <strong>Check</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODE B: COSMOLOGICAL REDSHIFT ============ -->
+    <section id="cosmo-mode" class="mode-section" role="tabpanel" aria-labelledby="tab-cosmo" hidden>
+      <details class="how-to" open>
+        <summary>How to use this simulation</summary>
+        <ol>
+          <li>Pick an <strong>emitting galaxy</strong> from the dropdown — G₁ is farthest from you, G₆ is nearest. (G₇ is your position.)</li>
+          <li>Press <strong>Launch photon</strong>. A photon starts at the chosen galaxy and travels toward you. As space expands, the photon's wavelength stretches with the scale factor a(t).</li>
+          <li>While it travels, watch the photon turn from blue toward red and the observed-frame spectrum shift to longer wavelengths. The Hubble plot shows v = H₀d for every galaxy.</li>
+          <li>When the photon arrives, use the <strong>Measure &amp; calculate</strong> panel below to read λ<sub>obs</sub> and apply 1 + z = λ<sub>obs</sub>/λ<sub>rest</sub> yourself.</li>
+        </ol>
+      </details>
+      <div class="canvas-controls-row">
+        <div class="canvas-wrap">
+          <canvas id="cosmo-canvas" class="physics-canvas" aria-label="Animation of an expanding 1D universe with galaxies and a redshifting photon"></canvas>
+          <div class="hubble-plot-wrap">
+            <div class="strip-label">Hubble's law: recession velocity vs. distance</div>
+            <canvas id="hubble-plot" aria-label="Plot of recession velocity against distance for each galaxy, with line v = H₀ d"></canvas>
+          </div>
+          <div class="spectrum-strip-wrap">
+            <div class="strip-label">Lab frame (rest-wavelength absorption lines)</div>
+            <canvas id="cosmo-spectrum-lab" class="spectrum-canvas" aria-hidden="true"></canvas>
+            <div class="line-readings" id="cosmo-lab-readings" aria-label="Lab-frame line wavelengths">
+              <span class="line-reading"><span class="lr-name">Hγ</span> <strong>434</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Hβ</span> <strong>486</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Mg b</span> <strong>517</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Na D</span> <strong>589</strong> nm</span>
+              <span class="line-reading"><span class="lr-name">Hα</span> <strong>656</strong> nm</span>
+            </div>
+            <div class="strip-label">Observed frame (cosmologically stretched)</div>
+            <canvas id="cosmo-spectrum-obs" class="spectrum-canvas" aria-hidden="true"></canvas>
+            <div class="line-readings" id="cosmo-obs-readings" aria-label="Observed-frame line wavelengths">
+              <span class="placeholder">Press “Launch photon” to take a measurement.</span>
+            </div>
+            <div class="spectrum-axis"><span>400 nm</span><span>550 nm</span><span>700 nm</span></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <h3>Universe</h3>
+            <label class="slider-label" for="cosmo-h0">
+              <span class="label-row">
+                <span class="label-text">Hubble constant H₀</span>
+                <span class="label-value" id="cosmo-h0-val">70 km/s/Mpc</span>
+              </span>
+              <input type="range" id="cosmo-h0" min="50" max="100" step="1" value="70">
+              <span style="font-size:13px;color:var(--muted);margin-top:2px;">Visually exaggerated so expansion is observable</span>
+            </label>
+            <label class="slider-label" for="cosmo-galaxy">
+              <span class="label-row">
+                <span class="label-text">Emitting galaxy</span>
+                <span class="label-value" id="cosmo-galaxy-val">G₁</span>
+              </span>
+              <select id="cosmo-galaxy">
+                <option value="0">G₁ (farthest)</option>
+                <option value="1">G₂</option>
+                <option value="2">G₃</option>
+                <option value="3">G₄</option>
+                <option value="4">G₅</option>
+                <option value="5">G₆ (nearest)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <h3>Playback</h3>
+            <p class="hint">
+              <strong>Launch photon</strong> emits a single photon from your chosen galaxy toward you (G₇).
+              The redshift you see at arrival is built up <em>during the journey</em> as space expands — not at emission.
+            </p>
+            <div class="btn-row">
+              <button class="btn primary" id="cosmo-launch">Launch photon</button>
+              <button class="btn primary" id="cosmo-play" aria-pressed="true">Pause</button>
+              <button class="btn" id="cosmo-reset">Reset</button>
+            </div>
+            <div class="toggle-row" style="margin-top:10px;">
+              <input type="checkbox" id="cosmo-freeze">
+              <label for="cosmo-freeze">Freeze grid (compare at an instant)</label>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>Live readouts</h3>
+            <div class="readouts">
+              <div class="readout">
+                <div class="label">Scale factor a(t)</div>
+                <div class="value" id="cosmo-a">1.000</div>
+              </div>
+              <div class="readout">
+                <div class="label">Distance d</div>
+                <div class="value" id="cosmo-d">600 Mpc</div>
+              </div>
+              <div class="readout">
+                <div class="label">Recession v = H₀ d</div>
+                <div class="value" id="cosmo-v">42 000 km/s</div>
+              </div>
+              <div class="readout primary">
+                <div class="label">Redshift z</div>
+                <div class="value" id="cosmo-z">0.000</div>
+              </div>
+              <div class="readout full">
+                <div class="label">Hubble age ≈ 1/H₀</div>
+                <div class="value" id="cosmo-age">14.0 Gyr</div>
+              </div>
+              <div class="shift-indicator full" id="cosmo-shift-indicator">
+                <span class="swatch" id="cosmo-shift-swatch" style="background:#888;"></span>
+                <span class="arrow" id="cosmo-shift-arrow">●</span>
+                <span id="cosmo-shift-text">No photon yet — press “Launch photon”</span>
+              </div>
+            </div>
+            <div class="formula">1 + <span class="var">z</span> = <span class="var">a</span>(<span class="var">t</span><sub>obs</sub>) / <span class="var">a</span>(<span class="var">t</span><sub>emit</sub>) = <span class="var">λ</span><sub>obs</sub> / <span class="var">λ</span><sub>rest</sub></div>
+            <div class="compare-tooltip">Compare with Mode A's Doppler formula λ′ = λ₀ (1+v/c). Here, redshift is set by the <em>stretching ratio</em> of space, not a velocity through space.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="measurement-panel" id="cosmo-measurement">
+        <h3>Take a measurement &amp; calculate z</h3>
+        <p class="help-text">
+          Once a photon has been launched, read off the observed wavelength of any line from the line-readings strip above
+          (e.g. Hα), then apply <span class="formula-inline">z = (λ<sub>obs</sub> − λ<sub>rest</sub>) / λ<sub>rest</sub></span>
+          (equivalently, 1 + z = λ<sub>obs</sub>/λ<sub>rest</sub>) and check your answer.
+          <em>Tip: you can pause to read values at any moment during the photon's journey.</em>
+        </p>
+        <div class="calc-rows">
+          <label class="calc-field">
+            <span class="cf-label">Reference line (λ<sub>rest</sub>)</span>
+            <select id="cosmo-calc-line">
+              <option value="434">Hγ — 434 nm</option>
+              <option value="486">Hβ — 486 nm</option>
+              <option value="517">Mg b — 517 nm</option>
+              <option value="589">Na D — 589 nm</option>
+              <option value="656" selected>Hα — 656 nm</option>
+            </select>
+          </label>
+          <label class="calc-field">
+            <span class="cf-label">Your λ<sub>obs</sub> (nm)</span>
+            <input type="number" id="cosmo-calc-lobs" step="0.1" inputmode="decimal" placeholder="e.g. 800.0">
+          </label>
+          <label class="calc-field">
+            <span class="cf-label">Your calculated z</span>
+            <input type="number" id="cosmo-calc-z" step="0.001" inputmode="decimal" placeholder="e.g. 0.000">
+          </label>
+          <button class="btn primary" id="cosmo-calc-check">Check</button>
+        </div>
+        <div class="calc-feedback neutral" id="cosmo-calc-feedback" aria-live="polite">
+          Launch a photon, then enter your measured λ<sub>obs</sub> and your calculated z, and press <strong>Check</strong>.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <div class="attribution">© Joshua Stafford-Haworth · JSHPhysics</div>
+    <button class="help-btn" id="help-btn" aria-label="Open pedagogy notes">?</button>
+  </footer>
+
+</div>
+
+<!-- ============ PEDAGOGY MODAL ============ -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <h2 id="modal-title">The two kinds of redshift</h2>
+    <h3>Doppler shift</h3>
+    <p>A Doppler shift is caused by a source moving <em>through</em> space relative to the observer. The wavelength change happens <em>at emission</em>: if the source moves toward you each successive wavefront is launched from a slightly closer position, so the spacing you measure is smaller. For speeds well below light speed the textbook formula is <strong>z ≈ v/c</strong> (negative z = blueshift, source approaching). The classic example is a nearby star moving in our galaxy, or an ambulance siren.</p>
+    <h3>Cosmological redshift</h3>
+    <p>For very distant galaxies the photon's wavelength stretches <em>during its journey</em> because space itself expands while the photon travels. Galaxies aren't really moving through space — their <em>comoving</em> coordinates are fixed; the metric of space scales up. The relation is <strong>1 + z = a<sub>obs</sub>/a<sub>emit</sub></strong>. This is the redshift seen for distant galaxies and is the basis of Hubble's law and the evidence for an expanding universe.</p>
+    <p class="key-line">For nearby galaxies the two formulas give the same answer — that's why z = v/c is taught first. For distant galaxies, only the cosmological formula is correct.</p>
+    <div class="modal-close-row">
+      <button class="btn primary" id="modal-close" style="flex:0 0 auto;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONFIG — physics & visual constants. Tweak these in class.
+   ============================================================ */
+const CONFIG = {
+  doppler: {
+    visualC: 130,             // px/sec — the "visual" speed of light on the canvas
+    sourceXStartFrac: 0.18,   // fraction of canvas width
+    observerXFrac: 0.92,
+    centreYFrac: 0.5,
+    velocityRange: 0.9,       // ±0.9 c
+    freqMin: 1, freqMax: 10, freqInitial: 4,
+    maxWavefronts: 40,
+    wavefrontMaxAge: 8,       // seconds (auto-cull)
+    wavefrontSegments: 36,    // arc segments per wavefront for tinted gradient
+    referenceLambdaNm: 600,   // physics readouts use a reference wavelength of 600 nm
+    referenceFreqHz: 5.0e14,  // c_real / 600 nm
+    flashDurationSec: 0.13,   // emission & arrival flash decay (seconds)
+    flashEmitColor: '#22c55e' // green: source emission flash
+  },
+  cosmo: {
+    galaxyCount: 7,
+    pxPerComoving: 70,        // px per comoving unit at a=1
+    observerMargin: 50,       // px from right edge to observer galaxy
+    H0Min: 50, H0Max: 100, H0Initial: 70,
+    H0VisualPerKmsmpc: 0.001, // visual H = H0 * this. At H0=70 → 0.07/sec, doubling-time ≈ 9.9s
+    photonComovingSpeedAtA1: 1.0,  // comoving units per second at a=1 (so 6 units in 6 s)
+    mpcPerComovingUnit: 100,  // each comoving unit displays as 100 Mpc
+    photonLambdaEmit: 26,     // emitted wavelength of photon wave packet, in pixels
+    photonAmplitude: 11,      // px
+    photonNumWaves: 3,
+    aMax: 6.0                 // hard ceiling on a(t)
+  },
+  ui: {
+    readoutHz: 10              // DOM readout update rate (Hz)
+  }
+};
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function hexToRgb(hex) {
+  const m = hex.replace('#','');
+  return {
+    r: parseInt(m.substring(0,2), 16),
+    g: parseInt(m.substring(2,4), 16),
+    b: parseInt(m.substring(4,6), 16)
+  };
+}
+function rgbToHex(r,g,b) {
+  const toHex = v => clamp(Math.round(v),0,255).toString(16).padStart(2,'0');
+  return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+function lerpHex(c1, c2, t) {
+  const a = hexToRgb(c1), b = hexToRgb(c2);
+  return rgbToHex(lerp(a.r,b.r,t), lerp(a.g,b.g,t), lerp(a.b,b.b,t));
+}
+
+// Map ratio = λ_observed / λ_rest to a colour on the blue-grey-red gradient.
+// ratio < 1 → blueshift; ratio > 1 → redshift.
+function shiftColor(ratio) {
+  const shift = clamp(ratio - 1, -1, 1);
+  if (shift < 0) {
+    return lerpHex('#888888', '#2b6cb0', Math.min(1, -shift / 0.6));
+  } else if (shift > 0) {
+    return lerpHex('#888888', '#c53030', Math.min(1,  shift / 0.6));
+  } else {
+    return '#888888';
+  }
+}
+
+// Approximate visible-wavelength → screen-RGB map for the spectrum strip backdrop.
+function wavelengthToRGB(nm) {
+  let r=0,g=0,b=0;
+  if (nm >= 380 && nm < 440) { r = -(nm-440)/60; g = 0; b = 1; }
+  else if (nm < 490) { r = 0; g = (nm-440)/50; b = 1; }
+  else if (nm < 510) { r = 0; g = 1; b = -(nm-510)/20; }
+  else if (nm < 580) { r = (nm-510)/70; g = 1; b = 0; }
+  else if (nm < 645) { r = 1; g = -(nm-645)/65; b = 0; }
+  else if (nm <= 780) { r = 1; g = 0; b = 0; }
+  // intensity falloff at edges
+  let s = 1;
+  if (nm > 700) s = 0.3 + 0.7*(780-nm)/80;
+  else if (nm < 420) s = 0.3 + 0.7*(nm-380)/40;
+  return [Math.round(255*r*s), Math.round(255*g*s), Math.round(255*b*s)];
+}
+
+// Draw a "flash" pulse — soft inner glow + expanding outer ring, fading with intensity.
+// Used to mark source emission and wavefront arrival events.
+function drawFlash(ctx, x, y, color, intensity, baseRadius) {
+  if (intensity <= 0) return;
+  const rgb = hexToRgb(color);
+  // Soft inner glow (held just outside the dot)
+  const glowR = baseRadius + 5;
+  ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (intensity * 0.40).toFixed(3) + ')';
+  ctx.beginPath();
+  ctx.arc(x, y, glowR, 0, Math.PI * 2);
+  ctx.fill();
+  // Expanding ring (radius grows as intensity fades)
+  const ringR = baseRadius + 16 * (1 - intensity);
+  ctx.strokeStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (intensity * 0.95).toFixed(3) + ')';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, ringR, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+// Resize a CSS-sized canvas to its DPR-scaled backing store.
+function fitCanvasToDPR(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(1, rect.width);
+  const cssH = Math.max(1, rect.height);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, cssW, cssH, dpr };
+}
+
+/* ============================================================
+   Spectrum strip — draws rainbow + absorption lines, shifted by z.
+   ============================================================ */
+const SPECTRUM_RANGE_MIN = 400;
+const SPECTRUM_RANGE_MAX = 700;
+const SPECTRUM_LINES = [
+  { nm: 434, label: 'Hγ' },
+  { nm: 486, label: 'Hβ' },
+  { nm: 517, label: 'Mg b' },
+  { nm: 589, label: 'Na D' },
+  { nm: 656, label: 'Hα' }
+];
+
+// Render a "line readings" row of {name, observed wavelength} pairs into a target div.
+function renderLineReadings(targetEl, z) {
+  if (!targetEl) return;
+  let html = '';
+  for (const line of SPECTRUM_LINES) {
+    const obs = line.nm * (1 + z);
+    const out = obs < SPECTRUM_RANGE_MIN || obs > SPECTRUM_RANGE_MAX;
+    html += '<span class="line-reading' + (out ? ' out-of-range' : '') + '">'
+          + '<span class="lr-name">' + line.label + '</span> '
+          + '<strong>' + obs.toFixed(1) + '</strong> nm'
+          + (out ? ' *' : '')
+          + '</span>';
+  }
+  if (z !== 0) {
+    // small "out of visible" footnote when any line clipped
+    const anyOut = SPECTRUM_LINES.some(l => {
+      const o = l.nm * (1 + z);
+      return o < SPECTRUM_RANGE_MIN || o > SPECTRUM_RANGE_MAX;
+    });
+    if (anyOut) {
+      html += '<span class="line-reading" style="color:var(--muted);font-size:12px;font-style:italic;">* outside the 400–700 nm strip</span>';
+    }
+  }
+  targetEl.innerHTML = html;
+}
+
+function drawSpectrum(canvas, z) {
+  const { ctx, cssW, cssH } = fitCanvasToDPR(canvas);
+  // rainbow background
+  for (let x = 0; x < cssW; x++) {
+    const nm = SPECTRUM_RANGE_MIN + (x / cssW) * (SPECTRUM_RANGE_MAX - SPECTRUM_RANGE_MIN);
+    const [r,g,b] = wavelengthToRGB(nm);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(x, 0, 1, cssH);
+  }
+  // absorption lines, shifted by (1+z)
+  ctx.fillStyle = '#000';
+  ctx.strokeStyle = '#000';
+  for (const line of SPECTRUM_LINES) {
+    const observed = line.nm * (1 + z);
+    const x = (observed - SPECTRUM_RANGE_MIN) / (SPECTRUM_RANGE_MAX - SPECTRUM_RANGE_MIN) * cssW;
+    if (x < 0 || x > cssW) continue;
+    ctx.fillRect(x - 1, 0, 2, cssH);
+  }
+}
+
+/* ============================================================
+   MODE A: dopplerSim
+   Convention:
+     v = +0.9..-0.9 c, slider value
+     +v ⇒ source moves TOWARD observer (in +x, observer on right)
+     v_radial_recession = -v
+     λ' = λ0 (1 + v_r/c) = λ0 (1 - v/c)
+     z = -v/c  ⇒  v=+0.5c → z=-0.5 (blueshift)
+                    v=-0.5c → z=+0.5 (redshift)
+   ============================================================ */
+const dopplerSim = {
+  canvas: null, ctx: null,
+  cssW: 0, cssH: 0,
+  v: 0,                     // fraction of c, slider value
+  freq: CONFIG.doppler.freqInitial,
+  source: { x: 0, y: 0 },
+  wavefronts: [],           // {x, y, t_emit, v_at_emit, arrived}
+  time: 0,
+  emissionAccumulator: 0,
+  paused: false,
+  showEmissionPoints: false,
+  resizeHandler: null,
+  controlsBound: false,
+  lastReadoutTime: 0,
+  sourceFlash: 0,           // 0..1, decays
+  observerFlash: 0,         // 0..1, decays
+  observerFlashColor: '#888888',
+
+  init() {
+    this.canvas = document.getElementById('doppler-canvas');
+    this.specLab = document.getElementById('doppler-spectrum-lab');
+    this.specObs = document.getElementById('doppler-spectrum-obs');
+    this.handleResize();
+    this.reset();
+    this.bindControls();
+    this.resizeHandler = () => this.handleResize();
+    window.addEventListener('resize', this.resizeHandler);
+    window.addEventListener('orientationchange', this.resizeHandler);
+    // initial draws
+    this.render();
+    this.updateReadouts(true);
+    drawSpectrum(this.specLab, 0);
+    drawSpectrum(this.specObs, 0);
+  },
+
+  handleResize() {
+    const fit = fitCanvasToDPR(this.canvas);
+    this.ctx = fit.ctx; this.cssW = fit.cssW; this.cssH = fit.cssH;
+    if (this.source.x === 0 && this.source.y === 0) {
+      this.source.x = this.cssW * CONFIG.doppler.sourceXStartFrac;
+      this.source.y = this.cssH * CONFIG.doppler.centreYFrac;
+    } else {
+      this.source.y = this.cssH * CONFIG.doppler.centreYFrac;
+    }
+    // redraw spectrum strips with current z
+    const z = -this.v;
+    drawSpectrum(this.specLab, 0);
+    drawSpectrum(this.specObs, z);
+  },
+
+  reset() {
+    this.source.x = this.cssW * CONFIG.doppler.sourceXStartFrac;
+    this.source.y = this.cssH * CONFIG.doppler.centreYFrac;
+    this.wavefronts = [];
+    this.time = 0;
+    this.emissionAccumulator = 0;
+    this.sourceFlash = 0;
+    this.observerFlash = 0;
+    this.observerFlashColor = '#888888';
+  },
+
+  bindControls() {
+    if (this.controlsBound) return;
+    this.controlsBound = true;
+    const vSlider = document.getElementById('dopp-velocity');
+    const fSlider = document.getElementById('dopp-frequency');
+    const playBtn = document.getElementById('dopp-play');
+    const resetBtn = document.getElementById('dopp-reset');
+    const emitToggle = document.getElementById('dopp-emission-points');
+
+    // Sync state from any browser-restored input values
+    this.v = parseFloat(vSlider.value);
+    this.freq = parseFloat(fSlider.value);
+    this.showEmissionPoints = emitToggle.checked;
+
+    vSlider.addEventListener('input', e => {
+      this.v = parseFloat(e.target.value);
+      this.updateReadouts(true);
+      drawSpectrum(this.specObs, -this.v);
+    });
+    fSlider.addEventListener('input', e => {
+      this.freq = parseFloat(e.target.value);
+      this.updateReadouts(true);
+    });
+    playBtn.addEventListener('click', () => {
+      this.paused = !this.paused;
+      playBtn.textContent = this.paused ? 'Play' : 'Pause';
+      playBtn.setAttribute('aria-pressed', this.paused ? 'false' : 'true');
+    });
+    resetBtn.addEventListener('click', () => {
+      this.reset();
+      this.render();
+    });
+    emitToggle.addEventListener('change', e => {
+      this.showEmissionPoints = e.target.checked;
+    });
+  },
+
+  update(dt) {
+    if (this.paused) return;
+    this.time += dt;
+    const c = CONFIG.doppler.visualC;
+    this.source.x += this.v * c * dt;
+
+    // Auto-loop: if source goes off canvas, reset its position.
+    if (this.source.x < 10 || this.source.x > this.cssW - 10) {
+      // keep existing wavefronts; just teleport source back.
+      this.source.x = this.cssW * (this.v >= 0
+        ? CONFIG.doppler.sourceXStartFrac
+        : (1 - CONFIG.doppler.sourceXStartFrac));
+    }
+
+    // Emit wavefronts (each emission triggers a source flash)
+    const T = 1 / this.freq;
+    this.emissionAccumulator += dt;
+    while (this.emissionAccumulator >= T) {
+      this.emissionAccumulator -= T;
+      this.wavefronts.push({
+        x: this.source.x,
+        y: this.source.y,
+        t_emit: this.time - this.emissionAccumulator,
+        v_at_emit: this.v,
+        arrived: false
+      });
+      this.sourceFlash = 1;   // green pulse on source
+      if (this.wavefronts.length > CONFIG.doppler.maxWavefronts) {
+        this.wavefronts.shift();
+      }
+    }
+
+    // Decay flashes (real-time decay, only while not paused)
+    const flashDecay = dt / CONFIG.doppler.flashDurationSec;
+    this.sourceFlash = Math.max(0, this.sourceFlash - flashDecay);
+    this.observerFlash = Math.max(0, this.observerFlash - flashDecay);
+
+    // Detect wavefront arrivals at the observer → trigger observer flash
+    const obsX = this.cssW * CONFIG.doppler.observerXFrac;
+    const obsY = this.cssH * CONFIG.doppler.centreYFrac;
+    for (const wf of this.wavefronts) {
+      if (wf.arrived) continue;
+      const dx = obsX - wf.x;
+      const dy = obsY - wf.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const r = (this.time - wf.t_emit) * c;
+      if (r >= dist) {
+        wf.arrived = true;
+        this.observerFlash = 1;
+        // Apparent λ at the observer: λ' = λ₀ (1 − v cos θ)
+        // θ measured from +x axis (the v-positive direction toward observer)
+        // v_at_emit is signed.
+        const theta = Math.atan2(dy, dx);
+        const ratio = 1 - wf.v_at_emit * Math.cos(theta);
+        this.observerFlashColor = shiftColor(ratio);
+      }
+    }
+
+    // Cull old
+    const maxAge = CONFIG.doppler.wavefrontMaxAge;
+    if (this.wavefronts.length > 0 && (this.time - this.wavefronts[0].t_emit) > maxAge) {
+      while (this.wavefronts.length && (this.time - this.wavefronts[0].t_emit) > maxAge) {
+        this.wavefronts.shift();
+      }
+    }
+  },
+
+  render() {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const c = CONFIG.doppler.visualC;
+    ctx.clearRect(0, 0, this.cssW, this.cssH);
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, this.cssW, this.cssH);
+
+    const obsX = this.cssW * CONFIG.doppler.observerXFrac;
+    const obsY = this.cssH * CONFIG.doppler.centreYFrac;
+
+    // Wavefronts (tinted by direction relative to source velocity)
+    for (const wf of this.wavefronts) {
+      const r = (this.time - wf.t_emit) * c;
+      this.drawTintedWavefront(wf.x, wf.y, r);
+    }
+
+    // Emission points (dots where wavefronts were emitted)
+    if (this.showEmissionPoints) {
+      ctx.fillStyle = 'rgba(60,60,60,0.6)';
+      for (const wf of this.wavefronts) {
+        ctx.beginPath();
+        ctx.arc(wf.x, wf.y, 2.2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+
+    // Source emission flash (green halo) — drawn before the dot so the dot stays crisp on top.
+    drawFlash(ctx, this.source.x, this.source.y, CONFIG.doppler.flashEmitColor, this.sourceFlash, 9);
+
+    // Source
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(this.source.x, this.source.y, 9, 0, Math.PI*2);
+    ctx.fill();
+
+    // Velocity arrow
+    if (Math.abs(this.v) > 0.005) {
+      const dir = Math.sign(this.v);
+      const len = clamp(Math.abs(this.v) * 60, 14, 60);
+      ctx.strokeStyle = '#1a1a1a';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(this.source.x, this.source.y);
+      ctx.lineTo(this.source.x + dir * len, this.source.y);
+      ctx.stroke();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath();
+      ctx.moveTo(this.source.x + dir * len, this.source.y);
+      ctx.lineTo(this.source.x + dir * (len - 8), this.source.y - 5);
+      ctx.lineTo(this.source.x + dir * (len - 8), this.source.y + 5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Observer arrival flash (blue/red halo, colour = the wavefront's apparent shift)
+    drawFlash(ctx, obsX, obsY, this.observerFlashColor, this.observerFlash, 13);
+
+    // Observer (eye)
+    this.drawObserver(obsX, obsY);
+
+    // Direction label
+    ctx.fillStyle = '#555';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Source', this.source.x + 14, this.source.y - 12);
+    ctx.textAlign = 'right';
+    ctx.fillText('Observer', obsX - 18, obsY - 14);
+  },
+
+  drawTintedWavefront(cx, cy, r) {
+    const ctx = this.ctx;
+    if (r < 1) return;
+    const segs = CONFIG.doppler.wavefrontSegments;
+    const v = this.v;
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < segs; i++) {
+      const a1 = (i / segs) * Math.PI * 2;
+      const a2 = ((i + 1) / segs) * Math.PI * 2;
+      const aMid = (a1 + a2) / 2;
+      // λ_apparent / λ0 = 1 - (v/c) cos(theta)
+      // theta measured from +x (source velocity direction when v>0).
+      // For v<0 the formula self-corrects since v is signed.
+      const ratio = 1 - v * Math.cos(aMid);
+      ctx.strokeStyle = shiftColor(ratio);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, a1, a2);
+      ctx.stroke();
+    }
+  },
+
+  drawObserver(x, y) {
+    const ctx = this.ctx;
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    // eye outline
+    ctx.beginPath();
+    ctx.ellipse(x, y, 16, 9, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    // pupil
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  },
+
+  updateReadouts(force) {
+    const now = performance.now() / 1000;
+    if (!force && (now - this.lastReadoutTime) < 1 / CONFIG.ui.readoutHz) return;
+    this.lastReadoutTime = now;
+    const v = this.v;                          // c-fraction
+    const lambda0 = CONFIG.doppler.referenceLambdaNm;
+    const lambdaObs = lambda0 * (1 - v);       // λ' = λ0 (1 - v/c)
+    const z = -v;                              // z = -v/c (with c=1 in these units)
+    const dlambda = lambdaObs - lambda0;
+    const fObs = CONFIG.doppler.referenceFreqHz / (1 + z); // f' = f0 / (1+z)
+    document.getElementById('dopp-velocity-val').textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + ' c';
+    document.getElementById('dopp-frequency-val').textContent = this.freq.toFixed(1) + ' Hz';
+    document.getElementById('dopp-lambda0').textContent = lambda0.toFixed(0) + ' nm';
+    document.getElementById('dopp-lambda-obs').textContent = lambdaObs.toFixed(1) + ' nm';
+    document.getElementById('dopp-dlambda').textContent = (dlambda >= 0 ? '+' : '') + dlambda.toFixed(1) + ' nm';
+    document.getElementById('dopp-z').textContent = (z >= 0 ? '+' : '') + z.toFixed(3);
+    document.getElementById('dopp-fobs').textContent = (fObs / 1e14).toFixed(2) + ' × 10¹⁴ Hz';
+
+    // Shift indicator: paired colour + word + arrow
+    const swatch = document.getElementById('dopp-shift-swatch');
+    const arrow  = document.getElementById('dopp-shift-arrow');
+    const text   = document.getElementById('dopp-shift-text');
+    if (Math.abs(v) < 0.005) {
+      swatch.style.background = '#888';
+      arrow.textContent = '●';
+      text.textContent = 'No shift (source stationary)';
+    } else if (v > 0) {
+      swatch.style.background = shiftColor(1 + z); // z<0 → blueish
+      arrow.textContent = '◀';
+      text.textContent = 'Blueshift (source approaching observer)';
+    } else {
+      swatch.style.background = shiftColor(1 + z); // z>0 → reddish
+      arrow.textContent = '▶';
+      text.textContent = 'Redshift (source receding from observer)';
+    }
+
+    // Numeric line readings for measurement
+    renderLineReadings(document.getElementById('dopp-obs-readings'), z);
+  },
+
+  destroy() {
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      window.removeEventListener('orientationchange', this.resizeHandler);
+      this.resizeHandler = null;
+    }
+  }
+};
+
+/* ============================================================
+   MODE B: cosmoSim
+   Convention:
+     a(0) = 1; a(t) = exp(H_vis * t), H_vis = H0_kmsmpc * H0VisualPerKmsmpc
+     Galaxies at comoving x = 0..6 (G1..G7), G7 = observer at right edge
+     Photon comoving evolution: dx_c/dt = c_co_at_a1 / a(t)
+     Photon wavelength: λ(t) = λ_emit * a(t) / a(t_emit)
+     Distance to observer: d_phys = a(t) * (6 - x_galaxy_c) * mpcPerComoving
+     Recession velocity:   v = H0 * d  (km/s)
+     Redshift:             z = a_obs / a_emit − 1
+   ============================================================ */
+const cosmoSim = {
+  canvas: null, ctx: null,
+  plotCanvas: null, plotCtx: null,
+  cssW: 0, cssH: 0,
+  plotCssW: 0, plotCssH: 0,
+  H0: CONFIG.cosmo.H0Initial,
+  a: 1.0, time: 0,
+  galaxies: [], observerIndex: 6,
+  emittingGalaxy: 0,
+  photon: null, // {x_c, t_emit, a_emit, lambda_emit, lambda, arrived, finalZ}
+  paused: false,
+  freezeGrid: false,
+  resizeHandler: null,
+  controlsBound: false,
+  lastReadoutTime: 0,
+  pulseTime: 0,
+  pulseGalaxy: -1,
+
+  init() {
+    this.canvas = document.getElementById('cosmo-canvas');
+    this.plotCanvas = document.getElementById('hubble-plot');
+    this.specLab = document.getElementById('cosmo-spectrum-lab');
+    this.specObs = document.getElementById('cosmo-spectrum-obs');
+    this.handleResize();
+    this.reset();
+    this.bindControls();
+    this.resizeHandler = () => this.handleResize();
+    window.addEventListener('resize', this.resizeHandler);
+    window.addEventListener('orientationchange', this.resizeHandler);
+    this.render();
+    this.renderHubblePlot();
+    this.updateReadouts(true);
+    drawSpectrum(this.specLab, 0);
+    drawSpectrum(this.specObs, 0);
+  },
+
+  handleResize() {
+    const f1 = fitCanvasToDPR(this.canvas);
+    this.ctx = f1.ctx; this.cssW = f1.cssW; this.cssH = f1.cssH;
+    const f2 = fitCanvasToDPR(this.plotCanvas);
+    this.plotCtx = f2.ctx; this.plotCssW = f2.cssW; this.plotCssH = f2.cssH;
+    drawSpectrum(this.specLab, 0);
+    const z = this.photon ? (this.photon.lambda / this.photon.lambda_emit - 1) : this.hypotheticalZ();
+    drawSpectrum(this.specObs, Math.max(0, z));
+  },
+
+  reset() {
+    this.a = 1.0;
+    this.time = 0;
+    this.galaxies = [];
+    for (let i = 0; i < CONFIG.cosmo.galaxyCount; i++) {
+      this.galaxies.push({ comoving: i, label: 'G' + (i + 1) });
+    }
+    this.photon = null;
+    this.pulseGalaxy = -1;
+    this.pulseTime = 0;
+  },
+
+  bindControls() {
+    if (this.controlsBound) return;
+    this.controlsBound = true;
+    const h0Slider = document.getElementById('cosmo-h0');
+    const galaxySel = document.getElementById('cosmo-galaxy');
+    const launchBtn = document.getElementById('cosmo-launch');
+    const playBtn = document.getElementById('cosmo-play');
+    const resetBtn = document.getElementById('cosmo-reset');
+    const freezeChk = document.getElementById('cosmo-freeze');
+
+    // Sync state from any browser-restored input values
+    this.H0 = parseFloat(h0Slider.value);
+    this.emittingGalaxy = parseInt(galaxySel.value, 10);
+    this.freezeGrid = freezeChk.checked;
+
+    h0Slider.addEventListener('input', e => {
+      this.H0 = parseFloat(e.target.value);
+      this.updateReadouts(true);
+      this.renderHubblePlot();
+    });
+    galaxySel.addEventListener('change', e => {
+      this.emittingGalaxy = parseInt(e.target.value, 10);
+      document.getElementById('cosmo-galaxy-val').textContent = this.galaxies[this.emittingGalaxy]
+        ? this.galaxies[this.emittingGalaxy].label.replace(/G(\d)/, (_,d)=>'G'+'₁₂₃₄₅₆₇'[parseInt(d,10)-1])
+        : 'G₁';
+      this.updateReadouts(true);
+    });
+    launchBtn.addEventListener('click', () => this.launchPhoton());
+    playBtn.addEventListener('click', () => {
+      this.paused = !this.paused;
+      playBtn.textContent = this.paused ? 'Play' : 'Pause';
+      playBtn.setAttribute('aria-pressed', this.paused ? 'false' : 'true');
+    });
+    resetBtn.addEventListener('click', () => {
+      this.reset();
+      this.render();
+      this.renderHubblePlot();
+      this.updateReadouts(true);
+      drawSpectrum(this.specObs, 0);
+      resetMeasurementFeedback('cosmo');
+    });
+    freezeChk.addEventListener('change', e => {
+      this.freezeGrid = e.target.checked;
+    });
+  },
+
+  launchPhoton() {
+    const g = this.galaxies[this.emittingGalaxy];
+    if (!g) return;
+    this.photon = {
+      x_c: g.comoving,
+      t_emit: this.time,
+      a_emit: this.a,
+      lambda_emit: CONFIG.cosmo.photonLambdaEmit,
+      lambda: CONFIG.cosmo.photonLambdaEmit,
+      arrived: false,
+      finalZ: 0
+    };
+    this.pulseGalaxy = this.emittingGalaxy;
+    this.pulseTime = 0;
+  },
+
+  Hvis() { return this.H0 * CONFIG.cosmo.H0VisualPerKmsmpc; },
+
+  hypotheticalZ() {
+    // If a photon were launched right now from the chosen galaxy, what z when arriving at observer?
+    // Solving: x_traveled_comoving = (c_co)/(a_emit * H_vis) * (1 - exp(-H_vis * Δt)) = D_c
+    // ⇒ exp(-H_vis Δt) = 1 - D_c * a_emit * H_vis / c_co
+    // ⇒ a_obs/a_emit = exp(H_vis Δt) = 1 / (1 - D_c * a_emit * H_vis / c_co)
+    const Dc = this.observerIndex - (this.galaxies[this.emittingGalaxy] ? this.galaxies[this.emittingGalaxy].comoving : 0);
+    const a_emit = this.a;
+    const H = this.Hvis();
+    const c_co = CONFIG.cosmo.photonComovingSpeedAtA1;
+    const denom = 1 - (Dc * a_emit * H) / c_co;
+    if (denom <= 0) return null; // beyond cosmic horizon
+    return (1 / denom) - 1;
+  },
+
+  update(dt) {
+    if (this.paused) return;
+    if (!this.freezeGrid) {
+      this.a *= Math.exp(this.Hvis() * dt);
+      if (this.a > CONFIG.cosmo.aMax) this.a = CONFIG.cosmo.aMax;
+      this.time += dt;
+    }
+    if (this.photon && !this.photon.arrived) {
+      const c_co = CONFIG.cosmo.photonComovingSpeedAtA1;
+      this.photon.x_c += (c_co / this.a) * dt;
+      this.photon.lambda = this.photon.lambda_emit * (this.a / this.photon.a_emit);
+      const obsXC = this.galaxies[this.observerIndex].comoving;
+      if (this.photon.x_c >= obsXC) {
+        this.photon.x_c = obsXC;
+        this.photon.arrived = true;
+        this.photon.finalZ = this.a / this.photon.a_emit - 1;
+      }
+    }
+    if (this.pulseGalaxy >= 0) {
+      this.pulseTime += dt;
+      if (this.pulseTime > 1.0) this.pulseGalaxy = -1;
+    }
+  },
+
+  render() {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    ctx.clearRect(0, 0, this.cssW, this.cssH);
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, this.cssW, this.cssH);
+
+    const pxPerC = CONFIG.cosmo.pxPerComoving;
+    const observerXR = this.cssW - CONFIG.cosmo.observerMargin;
+    const baseY = this.cssH * 0.5;
+    const obsXC = this.galaxies[this.observerIndex].comoving;
+    const xRender = (xc) => observerXR - this.a * pxPerC * (obsXC - xc);
+
+    // Tick lines (every 0.25 comoving units → grid stretches with a)
+    ctx.strokeStyle = '#e3e3e3';
+    ctx.lineWidth = 1;
+    const tickStep = 0.25;
+    for (let xc = 0; xc <= obsXC; xc += tickStep) {
+      const x = xRender(xc);
+      if (x < -2 || x > this.cssW + 2) continue;
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - 50);
+      ctx.lineTo(x, baseY + 50);
+      ctx.stroke();
+    }
+    // Bold tick lines at integer comoving positions
+    ctx.strokeStyle = '#bbbbbb';
+    ctx.lineWidth = 1.5;
+    for (let xc = 0; xc <= obsXC; xc++) {
+      const x = xRender(xc);
+      if (x < -2 || x > this.cssW + 2) continue;
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - 60);
+      ctx.lineTo(x, baseY + 60);
+      ctx.stroke();
+    }
+
+    // Centre line (the "rubber sheet")
+    ctx.strokeStyle = '#777';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(20, baseY);
+    ctx.lineTo(this.cssW - 20, baseY);
+    ctx.stroke();
+
+    // Galaxies
+    for (let i = 0; i < this.galaxies.length; i++) {
+      const g = this.galaxies[i];
+      const x = xRender(g.comoving);
+      if (x < -25 || x > this.cssW + 25) continue;
+      const isObserver = i === this.observerIndex;
+      const isEmitting = i === this.emittingGalaxy;
+
+      // pulse (suppressed if reduced motion)
+      let pulseR = 0;
+      if (this.pulseGalaxy === i && !prefersReducedMotion()) {
+        pulseR = 18 * (this.pulseTime);
+        ctx.strokeStyle = 'rgba(180,83,9,' + (1 - this.pulseTime).toFixed(3) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, baseY, 8 + pulseR, 0, Math.PI*2);
+        ctx.stroke();
+      }
+
+      // dot
+      ctx.fillStyle = isObserver ? '#b45309' : (isEmitting ? '#1a1a1a' : '#1a1a1a');
+      ctx.beginPath();
+      ctx.arc(x, baseY, isObserver ? 9 : (isEmitting ? 8 : 6), 0, Math.PI*2);
+      ctx.fill();
+      if (isEmitting && !isObserver) {
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, baseY, 11, 0, Math.PI*2);
+        ctx.stroke();
+      }
+      // label
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = '600 14px sans-serif';
+      ctx.textAlign = 'center';
+      const subscript = '₁₂₃₄₅₆₇'[i];
+      ctx.fillText('G' + subscript, x, baseY + 28);
+    }
+
+    // Photon wave packet
+    if (this.photon) {
+      this.drawPhoton(xRender(this.photon.x_c), baseY - 55);
+    }
+
+    // Annotations
+    ctx.fillStyle = '#555';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Comoving grid (stretches with a)', 8, 16);
+    ctx.textAlign = 'right';
+    const aText = 'a(t) = ' + this.a.toFixed(3);
+    ctx.fillText(aText, this.cssW - 8, 16);
+    if (this.freezeGrid) {
+      ctx.fillStyle = '#b45309';
+      ctx.fillText('grid frozen', this.cssW - 8, 32);
+    }
+  },
+
+  drawPhoton(x, y) {
+    const ctx = this.ctx;
+    const lambda = Math.max(2, this.photon.lambda);
+    const amp = CONFIG.cosmo.photonAmplitude;
+    const numWaves = CONFIG.cosmo.photonNumWaves;
+    const totalW = numWaves * lambda;
+    const ratio = lambda / this.photon.lambda_emit;
+    ctx.strokeStyle = shiftColor(ratio);
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    const step = 1.5;
+    for (let dx = -totalW/2; dx <= totalW/2; dx += step) {
+      const px = x + dx;
+      const phase = (dx + totalW/2) / lambda * Math.PI * 2;
+      const env = Math.exp(-Math.pow(dx / (totalW/2), 4) * 2);
+      const py = y + Math.sin(phase) * amp * env;
+      if (dx === -totalW/2) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // small arrow showing direction of travel
+    if (!this.photon.arrived) {
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.moveTo(x + totalW/2 + 6, y);
+      ctx.lineTo(x + totalW/2, y - 4);
+      ctx.lineTo(x + totalW/2, y + 4);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#b45309';
+      ctx.font = '600 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('arrived', x, y - 18);
+    }
+  },
+
+  renderHubblePlot() {
+    const ctx = this.plotCtx;
+    if (!ctx) return;
+    const W = this.plotCssW, H = this.plotCssH;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, W, H);
+
+    const padL = 56, padR = 16, padT = 14, padB = 32;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    // x-axis spans 0..xAxisMax (Mpc). Fixed scale (handles a up to ~1.5).
+    const mpcPerC = CONFIG.cosmo.mpcPerComovingUnit;
+    const obsXC = this.observerIndex;
+    const xAxisMax = obsXC * mpcPerC * 1.5;
+    // y-axis: max v = H0Max * xAxisMax (with 5% headroom)
+    const yAxisMax = CONFIG.cosmo.H0Max * xAxisMax * 1.05;
+
+    // Background grid
+    ctx.strokeStyle = '#e6e6e6';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const yy = padT + (plotH * i / 4);
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
+      const xx = padL + (plotW * i / 4);
+      ctx.beginPath(); ctx.moveTo(xx, padT); ctx.lineTo(xx, H - padB); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('d  (Mpc)', padL + plotW / 2, H - 6);
+    ctx.save();
+    ctx.translate(14, padT + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('v  (×10³ km/s)', 0, 0);
+    ctx.restore();
+
+    // Tick labels
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#555';
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= 4; i++) {
+      const dVal = (xAxisMax * i / 4);
+      const xx = padL + (plotW * i / 4);
+      ctx.fillText(dVal.toFixed(0), xx, H - padB + 14);
+    }
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+      const vVal = (yAxisMax * (4 - i) / 4) / 1000; // ×10³ km/s
+      const yy = padT + (plotH * i / 4);
+      ctx.fillText(vVal.toFixed(0), padL - 6, yy + 4);
+    }
+
+    // Hubble line v = H0 d
+    const xToPx = d => padL + (d / xAxisMax) * plotW;
+    const yToPx = v => padT + plotH - (v / yAxisMax) * plotH;
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(xToPx(0), yToPx(0));
+    ctx.lineTo(xToPx(xAxisMax), yToPx(this.H0 * xAxisMax));
+    ctx.stroke();
+
+    // Galaxy points
+    for (let i = 0; i < this.observerIndex; i++) {
+      const dC = (this.observerIndex - i); // comoving distance to observer
+      const dPhys = dC * mpcPerC * this.a;
+      const v = this.H0 * dPhys;
+      const px = xToPx(dPhys);
+      const py = yToPx(v);
+      // pulse highlight
+      if (this.pulseGalaxy === i && !prefersReducedMotion()) {
+        ctx.strokeStyle = 'rgba(180,83,9,' + (1 - this.pulseTime).toFixed(3) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, 5 + 12 * this.pulseTime, 0, Math.PI*2);
+        ctx.stroke();
+      }
+      ctx.fillStyle = (i === this.emittingGalaxy) ? '#b45309' : '#1a1a1a';
+      ctx.beginPath();
+      ctx.arc(px, py, (i === this.emittingGalaxy) ? 6 : 4, 0, Math.PI*2);
+      ctx.fill();
+      // label
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('G' + '₁₂₃₄₅₆'[i], px + 6, py - 6);
+    }
+
+    // Slope readout
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#b45309';
+    ctx.font = '600 12px sans-serif';
+    ctx.fillText('v = H₀ d  (slope = ' + this.H0 + ' km/s/Mpc)', W - padR - 4, padT + 12);
+  },
+
+  updateReadouts(force) {
+    const now = performance.now() / 1000;
+    if (!force && (now - this.lastReadoutTime) < 1 / CONFIG.ui.readoutHz) return;
+    this.lastReadoutTime = now;
+
+    const mpcPerC = CONFIG.cosmo.mpcPerComovingUnit;
+    const dC = (this.observerIndex - this.galaxies[this.emittingGalaxy].comoving);
+    const dPhys = dC * mpcPerC * this.a; // Mpc (current)
+    const v = this.H0 * dPhys; // km/s
+    let z;
+    if (this.photon) {
+      z = (this.photon.lambda / this.photon.lambda_emit) - 1;
+    } else {
+      const hz = this.hypotheticalZ();
+      z = (hz === null) ? Infinity : hz;
+    }
+    // 1/H0 in Gyr: H0[km/s/Mpc] → /s by dividing by 3.086e19; reciprocal in s; /3.156e16 for Gyr
+    // shortcut: 1/H0 ≈ 977.8 / H0  (Gyr)
+    const ageGyr = 977.8 / this.H0;
+
+    document.getElementById('cosmo-h0-val').textContent = this.H0.toFixed(0) + ' km/s/Mpc';
+    document.getElementById('cosmo-galaxy-val').textContent = this.galaxies[this.emittingGalaxy].label.replace(/G(\d)/, (_,d)=>'G'+'₁₂₃₄₅₆₇'[parseInt(d,10)-1]);
+    document.getElementById('cosmo-a').textContent = this.a.toFixed(3);
+    document.getElementById('cosmo-d').textContent = dPhys.toFixed(0) + ' Mpc';
+    document.getElementById('cosmo-v').textContent = formatThousands(v) + ' km/s';
+    document.getElementById('cosmo-age').textContent = ageGyr.toFixed(1) + ' Gyr';
+
+    if (z === Infinity || !isFinite(z)) {
+      document.getElementById('cosmo-z').textContent = 'beyond horizon';
+    } else {
+      document.getElementById('cosmo-z').textContent = (z >= 0 ? '+' : '') + z.toFixed(3);
+    }
+
+    // Shift indicator
+    const swatch = document.getElementById('cosmo-shift-swatch');
+    const arrow  = document.getElementById('cosmo-shift-arrow');
+    const text   = document.getElementById('cosmo-shift-text');
+    if (this.photon) {
+      const ratio = this.photon.lambda / this.photon.lambda_emit;
+      swatch.style.background = shiftColor(ratio);
+      arrow.textContent = '▶';
+      if (this.photon.arrived) {
+        text.textContent = 'Photon arrived — final z = ' + (this.photon.finalZ).toFixed(3) + ' (cosmological redshift)';
+      } else {
+        text.textContent = 'Photon en route — wavelength stretching as space expands';
+      }
+    } else {
+      swatch.style.background = '#888';
+      arrow.textContent = '●';
+      text.textContent = 'No photon yet — press “Launch photon”';
+    }
+
+    // Spectrum strip uses current z (or 0 if no photon)
+    const zForStrip = this.photon ? Math.max(0, (this.photon.lambda / this.photon.lambda_emit) - 1) : 0;
+    drawSpectrum(this.specObs, zForStrip);
+
+    // Numeric line readings for measurement
+    const obsReadings = document.getElementById('cosmo-obs-readings');
+    if (this.photon) {
+      const zStrip = (this.photon.lambda / this.photon.lambda_emit) - 1;
+      renderLineReadings(obsReadings, zStrip);
+    } else {
+      obsReadings.innerHTML = '<span class="placeholder">Press “Launch photon” to take a measurement.</span>';
+    }
+  },
+
+  destroy() {
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      window.removeEventListener('orientationchange', this.resizeHandler);
+      this.resizeHandler = null;
+    }
+  }
+};
+
+function formatThousands(n) {
+  if (!isFinite(n)) return '—';
+  const sign = n < 0 ? '-' : '';
+  const a = Math.abs(n);
+  if (a >= 1e6) return sign + (a / 1e6).toFixed(2) + ' × 10⁶';
+  return sign + Math.round(a).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/* ============================================================
+   Measurement calculator — pedagogical worked-step feedback.
+   ============================================================ */
+function checkMeasurement(mode) {
+  const lineRest = parseFloat(document.getElementById(mode + '-calc-line').value);
+  const lambdaObs = parseFloat(document.getElementById(mode + '-calc-lobs').value);
+  const studentZ = parseFloat(document.getElementById(mode + '-calc-z').value);
+  const feedback = document.getElementById(mode + '-calc-feedback');
+  feedback.className = 'calc-feedback';
+
+  if (isNaN(lambdaObs) || isNaN(studentZ)) {
+    feedback.classList.add('neutral');
+    feedback.innerHTML = 'Please enter both your measured <strong>λ<sub>obs</sub></strong> and your calculated <strong>z</strong>, then press Check.';
+    return;
+  }
+
+  // Get sim's actual z (truth value) — what the simulation thinks the redshift is right now.
+  let actualZ;
+  let context;
+  if (mode === 'dopp') {
+    actualZ = -dopplerSim.v; // z = -v/c (slider convention: +v = toward observer)
+    context = 'Doppler';
+  } else {
+    if (cosmoSim.photon) {
+      actualZ = cosmoSim.photon.lambda / cosmoSim.photon.lambda_emit - 1;
+    } else {
+      actualZ = NaN;
+    }
+    context = 'cosmological';
+  }
+
+  if (isNaN(actualZ)) {
+    feedback.classList.add('neutral');
+    feedback.innerHTML = '<strong>No photon yet.</strong> Press <em>Launch photon</em> first to set up an observation, then take your measurement.';
+    return;
+  }
+
+  const expectedObs = lineRest * (1 + actualZ);
+  const zFromMeasurement = (lambdaObs - lineRest) / lineRest;
+
+  // Tolerance bands
+  const obsTol = Math.max(2, lineRest * 0.005);   // ±2 nm or ±0.5%
+  const zCalcTol = 0.005;                          // arithmetic accuracy
+  const zSimTol = 0.025;                           // overall agreement with sim
+
+  const measMatches = Math.abs(lambdaObs - expectedObs) <= obsTol;
+  const calcMatches = Math.abs(studentZ - zFromMeasurement) <= zCalcTol;
+
+  let html = '';
+  let cls = '';
+
+  // Step 1: measurement check
+  if (measMatches) {
+    html += '✓ <strong>Measurement accepted.</strong> Your λ<sub>obs</sub> = ' + lambdaObs.toFixed(1)
+          + ' nm matches the simulation\'s value of ' + expectedObs.toFixed(1) + ' nm (within ±' + obsTol.toFixed(1) + ' nm).<br>';
+  } else {
+    html += '✗ <strong>Re-read your measurement.</strong> The simulation gives λ<sub>obs</sub> ≈ '
+          + expectedObs.toFixed(1) + ' nm for this line, but you entered ' + lambdaObs.toFixed(1) + ' nm.<br>';
+  }
+
+  // Step 2: arithmetic check (using student's own λ_obs)
+  if (calcMatches) {
+    html += '✓ <strong>Calculation correct.</strong> (' + lambdaObs.toFixed(1) + ' − ' + lineRest.toFixed(0)
+          + ') / ' + lineRest.toFixed(0) + ' = ' + zFromMeasurement.toFixed(3) + '.<br>';
+  } else {
+    html += '✗ <strong>Re-check the arithmetic.</strong> (' + lambdaObs.toFixed(1) + ' − ' + lineRest.toFixed(0)
+          + ') / ' + lineRest.toFixed(0) + ' = ' + zFromMeasurement.toFixed(3)
+          + ', not ' + studentZ.toFixed(3) + '.<br>';
+  }
+
+  // Step 3: overall verdict vs simulation
+  if (measMatches && calcMatches) {
+    cls = 'correct';
+    html += '<strong>Excellent — z = ' + studentZ.toFixed(3) + ' matches the simulation\'s ' + context + ' z = ' + actualZ.toFixed(3) + '.</strong>';
+  } else if (calcMatches && !measMatches) {
+    cls = 'partial';
+    html += 'Your <em>arithmetic</em> is right, but the <em>measurement</em> is off. Re-read the observed strip — simulation z = ' + actualZ.toFixed(3) + '.';
+  } else if (measMatches && !calcMatches) {
+    cls = 'partial';
+    html += 'Your <em>measurement</em> is right; the <em>calculation</em> needs another look. Simulation z = ' + actualZ.toFixed(3) + '.';
+  } else {
+    cls = 'error';
+    html += 'Try again: simulation z = ' + actualZ.toFixed(3) + '.';
+  }
+
+  feedback.classList.add(cls);
+  feedback.innerHTML = html;
+}
+
+function resetMeasurementFeedback(mode) {
+  const feedback = document.getElementById(mode + '-calc-feedback');
+  if (!feedback) return;
+  feedback.className = 'calc-feedback neutral';
+  if (mode === 'dopp') {
+    feedback.innerHTML = 'Read your λ<sub>obs</sub> from the observed strip, calculate z, then press <strong>Check</strong>.';
+  } else {
+    feedback.innerHTML = 'Launch a photon, then enter your measured λ<sub>obs</sub> and your calculated z, and press <strong>Check</strong>.';
+  }
+}
+
+/* ============================================================
+   Tabs, modal, single rAF loop
+   ============================================================ */
+let activeSim = null;
+let lastFrameTime = 0;
+let isVisible = true;
+let rafHandle = null;
+
+function frame(ts) {
+  if (!isVisible) {
+    lastFrameTime = ts;
+    rafHandle = requestAnimationFrame(frame);
+    return;
+  }
+  let dt = (ts - lastFrameTime) / 1000;
+  if (!isFinite(dt) || dt < 0) dt = 0;
+  if (dt > 0.1) dt = 0.016; // clamp on tab return / first frame
+  lastFrameTime = ts;
+  if (activeSim) {
+    activeSim.update(dt);
+    activeSim.render();
+    if (activeSim === cosmoSim) cosmoSim.renderHubblePlot();
+    activeSim.updateReadouts(false);
+  }
+  rafHandle = requestAnimationFrame(frame);
+}
+
+function activateMode(name) {
+  const dopplerSec = document.getElementById('doppler-mode');
+  const cosmoSec = document.getElementById('cosmo-mode');
+  const tabDoppler = document.getElementById('tab-doppler');
+  const tabCosmo = document.getElementById('tab-cosmo');
+  const tagline = document.getElementById('mode-tagline');
+
+  if (activeSim) activeSim.destroy();
+
+  if (name === 'doppler') {
+    dopplerSec.classList.add('active');
+    dopplerSec.removeAttribute('hidden');
+    cosmoSec.classList.remove('active');
+    cosmoSec.setAttribute('hidden', '');
+    tabDoppler.setAttribute('aria-selected', 'true');
+    tabCosmo.setAttribute('aria-selected', 'false');
+    tagline.textContent = 'Classical Doppler — a source moves through space; wavelengths shift on emission.';
+    dopplerSim.init();
+    activeSim = dopplerSim;
+  } else {
+    cosmoSec.classList.add('active');
+    cosmoSec.removeAttribute('hidden');
+    dopplerSec.classList.remove('active');
+    dopplerSec.setAttribute('hidden', '');
+    tabCosmo.setAttribute('aria-selected', 'true');
+    tabDoppler.setAttribute('aria-selected', 'false');
+    tagline.textContent = 'Cosmological redshift — space itself stretches; wavelengths grow during the photon\'s journey.';
+    cosmoSim.init();
+    activeSim = cosmoSim;
+  }
+}
+
+document.getElementById('tab-doppler').addEventListener('click', () => activateMode('doppler'));
+document.getElementById('tab-cosmo').addEventListener('click', () => activateMode('cosmo'));
+
+// keyboard nav between tabs (left/right arrows)
+[document.getElementById('tab-doppler'), document.getElementById('tab-cosmo')].forEach((tab, idx, arr) => {
+  tab.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = arr[(idx + (e.key === 'ArrowRight' ? 1 : arr.length - 1)) % arr.length];
+      next.focus();
+      next.click();
+    }
+  });
+});
+
+// Modal
+const overlay = document.getElementById('modal-overlay');
+const helpBtn = document.getElementById('help-btn');
+const closeBtn = document.getElementById('modal-close');
+let lastFocusBeforeModal = null;
+function openModal() {
+  lastFocusBeforeModal = document.activeElement;
+  overlay.classList.add('open');
+  closeBtn.focus();
+}
+function closeModal() {
+  overlay.classList.remove('open');
+  if (lastFocusBeforeModal && lastFocusBeforeModal.focus) lastFocusBeforeModal.focus();
+}
+helpBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+});
+
+// Visibility — pause/resume
+document.addEventListener('visibilitychange', () => {
+  isVisible = document.visibilityState === 'visible';
+  if (isVisible) {
+    lastFrameTime = performance.now();
+  }
+});
+
+// Measurement calculator bindings (these elements are static; bind once on boot).
+document.getElementById('dopp-calc-check').addEventListener('click', () => checkMeasurement('dopp'));
+document.getElementById('cosmo-calc-check').addEventListener('click', () => checkMeasurement('cosmo'));
+
+// Pressing Enter inside a calc input triggers the same check.
+['dopp-calc-lobs','dopp-calc-z'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); checkMeasurement('dopp'); }
+  });
+});
+['cosmo-calc-lobs','cosmo-calc-z'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); checkMeasurement('cosmo'); }
+  });
+});
+
+// Boot
+function boot() {
+  activateMode('doppler');
+  lastFrameTime = performance.now();
+  rafHandle = requestAnimationFrame(frame);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
