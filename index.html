@@ -201,6 +201,50 @@ label.slider-label:last-child { margin-bottom: 0; }
   color: var(--text);
 }
 
+.value-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.inline-num {
+  width: 86px;
+  height: 36px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding: 0 8px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.inline-num::-webkit-outer-spin-button,
+.inline-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.inline-num:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.inline-num:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.value-edit .unit {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 input[type="range"] {
   width: 100%;
   height: 44px;
@@ -779,6 +823,7 @@ button.help-btn:focus-visible {
           <li>Move the <strong>Source velocity</strong> slider. Positive = source moves toward you (blueshift); negative = source moves away (redshift).</li>
           <li>Watch the wavefronts compress in front and spread out behind. The spectrum strip below shifts in step.</li>
           <li>The source pulses <span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:50%;vertical-align:middle;border:1px solid #15803d;"></span> <strong>green</strong> at every emission (a constant rate). The observer pulses <strong>blue or red</strong> at every arrival — its rate <em>differs</em> from the emission rate, and that difference <em>is</em> the Doppler shift you can see directly.</li>
+          <li>If the source travels past the edge of the canvas it keeps moving and keeps emitting — an arrow on the edge marks where it has gone. Watch what happens to the observer's flash colour as the source passes the observer (<em>blueshift switches to redshift</em>). Press <strong>Reset</strong> when you want to recentre the source.</li>
           <li>Press <strong>Pause</strong> when you want a stable picture to take a measurement.</li>
           <li>Use the <strong>Measure &amp; calculate</strong> panel below to apply the formula yourself, then check.</li>
         </ol>
@@ -808,15 +853,21 @@ button.help-btn:focus-visible {
             <label class="slider-label" for="dopp-velocity">
               <span class="label-row">
                 <span class="label-text">Source velocity</span>
-                <span class="label-value" id="dopp-velocity-val">0.00 c</span>
+                <span class="value-edit">
+                  <input type="number" id="dopp-velocity-input" class="inline-num" value="0" min="-0.9" max="0.9" step="0.01" inputmode="decimal" aria-label="Source velocity in fractions of c (tap to type)">
+                  <span class="unit">c</span>
+                </span>
               </span>
               <input type="range" id="dopp-velocity" min="-0.9" max="0.9" step="0.01" value="0">
-              <span style="font-size:13px;color:var(--muted);margin-top:2px;">+ = toward observer&nbsp;&nbsp; − = away</span>
+              <span style="font-size:13px;color:var(--muted);margin-top:2px;">+ = toward observer&nbsp;&nbsp; − = away &nbsp;·&nbsp; tap the number to type a value</span>
             </label>
             <label class="slider-label" for="dopp-frequency">
               <span class="label-row">
                 <span class="label-text">Source frequency (visual)</span>
-                <span class="label-value" id="dopp-frequency-val">4.0 Hz</span>
+                <span class="value-edit">
+                  <input type="number" id="dopp-frequency-input" class="inline-num" value="4" min="1" max="10" step="0.1" inputmode="decimal" aria-label="Source frequency in hertz (tap to type)">
+                  <span class="unit">Hz</span>
+                </span>
               </span>
               <input type="range" id="dopp-frequency" min="1" max="10" step="0.1" value="4">
             </label>
@@ -829,8 +880,20 @@ button.help-btn:focus-visible {
               <button class="btn" id="dopp-reset">Reset</button>
             </div>
             <div class="toggle-row" style="margin-top:10px;">
+              <input type="checkbox" id="dopp-source-emitting" checked>
+              <label for="dopp-source-emitting">Source emitting</label>
+            </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="dopp-show-wavefronts" checked>
+              <label for="dopp-show-wavefronts">Show wavefronts</label>
+            </div>
+            <div class="toggle-row">
               <input type="checkbox" id="dopp-emission-points">
               <label for="dopp-emission-points">Show wavefront emission points</label>
+            </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="dopp-show-wave">
+              <label for="dopp-show-wave">Show wave along x-axis (λ′)</label>
             </div>
           </div>
 
@@ -945,10 +1008,13 @@ button.help-btn:focus-visible {
             <label class="slider-label" for="cosmo-h0">
               <span class="label-row">
                 <span class="label-text">Hubble constant H₀</span>
-                <span class="label-value" id="cosmo-h0-val">70 km/s/Mpc</span>
+                <span class="value-edit">
+                  <input type="number" id="cosmo-h0-input" class="inline-num" value="70" min="50" max="100" step="1" inputmode="decimal" aria-label="Hubble constant in kilometres per second per megaparsec (tap to type)">
+                  <span class="unit">km/s/Mpc</span>
+                </span>
               </span>
               <input type="range" id="cosmo-h0" min="50" max="100" step="1" value="70">
-              <span style="font-size:13px;color:var(--muted);margin-top:2px;">Visually exaggerated so expansion is observable</span>
+              <span style="font-size:13px;color:var(--muted);margin-top:2px;">Visually exaggerated so expansion is observable&nbsp;·&nbsp; tap the number to type a value</span>
             </label>
             <label class="slider-label" for="cosmo-galaxy">
               <span class="label-row">
@@ -980,6 +1046,10 @@ button.help-btn:focus-visible {
             <div class="toggle-row" style="margin-top:10px;">
               <input type="checkbox" id="cosmo-freeze">
               <label for="cosmo-freeze">Freeze grid (compare at an instant)</label>
+            </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="cosmo-show-wave">
+              <label for="cosmo-show-wave">Show wave along x-axis (λ)</label>
             </div>
           </div>
 
@@ -1097,7 +1167,9 @@ const CONFIG = {
     referenceLambdaNm: 600,   // physics readouts use a reference wavelength of 600 nm
     referenceFreqHz: 5.0e14,  // c_real / 600 nm
     flashDurationSec: 0.13,   // emission & arrival flash decay (seconds)
-    flashEmitColor: '#22c55e' // green: source emission flash
+    flashEmitColor: '#22c55e',// green: source emission flash
+    waveYFrac: 0.50,          // y-position (fraction of canvas height) — central axis
+    waveAmplitude: 11         // px (small enough not to dominate)
   },
   cosmo: {
     galaxyCount: 7,
@@ -1110,7 +1182,10 @@ const CONFIG = {
     photonLambdaEmit: 26,     // emitted wavelength of photon wave packet, in pixels
     photonAmplitude: 11,      // px
     photonNumWaves: 3,
-    aMax: 6.0                 // hard ceiling on a(t)
+    aMax: 6.0,                // hard ceiling on a(t)
+    waveYFrac: 0.50,          // y-position (fraction of canvas height) — central axis (galaxy line)
+    waveAmplitude: 9,         // px (small — galaxy dots overlay it)
+    waveSpeed: 130            // px/sec for the wave's animated propagation
   },
   ui: {
     readoutHz: 10              // DOM readout update rate (Hz)
@@ -1168,6 +1243,44 @@ function wavelengthToRGB(nm) {
   if (nm > 700) s = 0.3 + 0.7*(780-nm)/80;
   else if (nm < 420) s = 0.3 + 0.7*(nm-380)/40;
   return [Math.round(255*r*s), Math.round(255*g*s), Math.round(255*b*s)];
+}
+
+// Wire a number input to a range slider so they stay in sync. The slider remains the
+// source-of-truth (its 'input' event drives sim updates); the number input forwards
+// values into the slider and reflects the slider's current value when not focused.
+function wireEditableInput(input, slider, updateFn) {
+  const min = parseFloat(slider.min);
+  const max = parseFloat(slider.max);
+  function commitFromInput(rawCommit) {
+    let v = parseFloat(input.value);
+    if (isNaN(v)) v = parseFloat(slider.value);
+    if (rawCommit) {
+      v = Math.max(min, Math.min(max, v));
+      input.value = v;
+    }
+    slider.value = v;
+    if (updateFn) updateFn(parseFloat(slider.value));
+  }
+  input.addEventListener('input', () => {
+    const raw = input.value;
+    if (raw === '' || raw === '-' || raw === '+' || raw === '.' || raw === '-.' || raw === '+.') return;
+    const v = parseFloat(raw);
+    if (isNaN(v)) return;
+    slider.value = Math.max(min, Math.min(max, v));
+    if (updateFn) updateFn(parseFloat(slider.value));
+  });
+  input.addEventListener('change', () => commitFromInput(true));
+  input.addEventListener('blur', () => commitFromInput(true));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commitFromInput(true); input.blur(); }
+  });
+  // Slider drag should mirror into the input (when not focused) — caller will handle
+  // their own slider-input listener and call setInputValue to keep this in sync.
+}
+
+// Update a number input's displayed value, but only if the user isn't currently editing it.
+function setInputValue(input, val) {
+  if (document.activeElement !== input) input.value = val;
 }
 
 // Draw a "flash" pulse — soft inner glow + expanding outer ring, fading with intensity.
@@ -1289,6 +1402,10 @@ const dopplerSim = {
   sourceFlash: 0,           // 0..1, decays
   observerFlash: 0,         // 0..1, decays
   observerFlashColor: '#888888',
+  showWave: false,
+  wavePhase: 0,             // px — advances at visualC px/sec, animates wave
+  sourceEmitting: true,     // toggle: source emitting on/off
+  showWavefronts: true,     // toggle: render the expanding wavefront circles
 
   init() {
     this.canvas = document.getElementById('doppler-canvas');
@@ -1331,6 +1448,7 @@ const dopplerSim = {
     this.sourceFlash = 0;
     this.observerFlash = 0;
     this.observerFlashColor = '#888888';
+    this.wavePhase = 0;
   },
 
   bindControls() {
@@ -1338,22 +1456,41 @@ const dopplerSim = {
     this.controlsBound = true;
     const vSlider = document.getElementById('dopp-velocity');
     const fSlider = document.getElementById('dopp-frequency');
+    const vInput = document.getElementById('dopp-velocity-input');
+    const fInput = document.getElementById('dopp-frequency-input');
     const playBtn = document.getElementById('dopp-play');
     const resetBtn = document.getElementById('dopp-reset');
     const emitToggle = document.getElementById('dopp-emission-points');
+    const waveToggle = document.getElementById('dopp-show-wave');
+    const emittingToggle = document.getElementById('dopp-source-emitting');
+    const wavefrontsToggle = document.getElementById('dopp-show-wavefronts');
 
     // Sync state from any browser-restored input values
     this.v = parseFloat(vSlider.value);
     this.freq = parseFloat(fSlider.value);
     this.showEmissionPoints = emitToggle.checked;
+    this.showWave = waveToggle.checked;
+    this.sourceEmitting = emittingToggle.checked;
+    this.showWavefronts = wavefrontsToggle.checked;
 
     vSlider.addEventListener('input', e => {
       this.v = parseFloat(e.target.value);
+      setInputValue(vInput, this.v.toFixed(2));
       this.updateReadouts(true);
       drawSpectrum(this.specObs, -this.v);
     });
     fSlider.addEventListener('input', e => {
       this.freq = parseFloat(e.target.value);
+      setInputValue(fInput, this.freq.toFixed(1));
+      this.updateReadouts(true);
+    });
+    wireEditableInput(vInput, vSlider, () => {
+      this.v = parseFloat(vSlider.value);
+      this.updateReadouts(true);
+      drawSpectrum(this.specObs, -this.v);
+    });
+    wireEditableInput(fInput, fSlider, () => {
+      this.freq = parseFloat(fSlider.value);
       this.updateReadouts(true);
     });
     playBtn.addEventListener('click', () => {
@@ -1368,6 +1505,17 @@ const dopplerSim = {
     emitToggle.addEventListener('change', e => {
       this.showEmissionPoints = e.target.checked;
     });
+    waveToggle.addEventListener('change', e => {
+      this.showWave = e.target.checked;
+    });
+    emittingToggle.addEventListener('change', e => {
+      this.sourceEmitting = e.target.checked;
+      // When turning emission back on, prime the accumulator so a wavefront emits promptly.
+      if (this.sourceEmitting) this.emissionAccumulator = 0;
+    });
+    wavefrontsToggle.addEventListener('change', e => {
+      this.showWavefronts = e.target.checked;
+    });
   },
 
   update(dt) {
@@ -1375,31 +1523,35 @@ const dopplerSim = {
     this.time += dt;
     const c = CONFIG.doppler.visualC;
     this.source.x += this.v * c * dt;
+    // Advance wave phase at the visual speed of light
+    this.wavePhase += c * dt;
 
-    // Auto-loop: if source goes off canvas, reset its position.
-    if (this.source.x < 10 || this.source.x > this.cssW - 10) {
-      // keep existing wavefronts; just teleport source back.
-      this.source.x = this.cssW * (this.v >= 0
-        ? CONFIG.doppler.sourceXStartFrac
-        : (1 - CONFIG.doppler.sourceXStartFrac));
-    }
+    // The source is allowed to travel off-canvas indefinitely. Wavefronts continue
+    // to be emitted from its true position so that, e.g., when the source moves
+    // past the observer, the on-canvas flashes / tints visibly switch from
+    // blue to red without any teleport seam. Press Reset to recentre.
 
-    // Emit wavefronts (each emission triggers a source flash)
-    const T = 1 / this.freq;
-    this.emissionAccumulator += dt;
-    while (this.emissionAccumulator >= T) {
-      this.emissionAccumulator -= T;
-      this.wavefronts.push({
-        x: this.source.x,
-        y: this.source.y,
-        t_emit: this.time - this.emissionAccumulator,
-        v_at_emit: this.v,
-        arrived: false
-      });
-      this.sourceFlash = 1;   // green pulse on source
-      if (this.wavefronts.length > CONFIG.doppler.maxWavefronts) {
-        this.wavefronts.shift();
+    // Emit wavefronts (each emission triggers a source flash) — only when emission is enabled.
+    if (this.sourceEmitting) {
+      const T = 1 / this.freq;
+      this.emissionAccumulator += dt;
+      while (this.emissionAccumulator >= T) {
+        this.emissionAccumulator -= T;
+        this.wavefronts.push({
+          x: this.source.x,
+          y: this.source.y,
+          t_emit: this.time - this.emissionAccumulator,
+          v_at_emit: this.v,
+          arrived: false
+        });
+        this.sourceFlash = 1;   // green pulse — even when source is off-canvas, the edge indicator picks it up
+        if (this.wavefronts.length > CONFIG.doppler.maxWavefronts) {
+          this.wavefronts.shift();
+        }
       }
+    } else {
+      // Hold the accumulator at zero so re-enabling emission feels responsive.
+      this.emissionAccumulator = 0;
     }
 
     // Decay flashes (real-time decay, only while not paused)
@@ -1448,10 +1600,13 @@ const dopplerSim = {
     const obsX = this.cssW * CONFIG.doppler.observerXFrac;
     const obsY = this.cssH * CONFIG.doppler.centreYFrac;
 
-    // Wavefronts (tinted by direction relative to source velocity)
-    for (const wf of this.wavefronts) {
-      const r = (this.time - wf.t_emit) * c;
-      this.drawTintedWavefront(wf.x, wf.y, r);
+    // Wavefronts (tinted by direction relative to source velocity) — rendered only if toggle is on.
+    // Note: when off, wavefronts still propagate in physics (so observer arrival flashes still fire).
+    if (this.showWavefronts) {
+      for (const wf of this.wavefronts) {
+        const r = (this.time - wf.t_emit) * c;
+        this.drawTintedWavefront(wf.x, wf.y, r);
+      }
     }
 
     // Emission points (dots where wavefronts were emitted)
@@ -1464,32 +1619,45 @@ const dopplerSim = {
       }
     }
 
-    // Source emission flash (green halo) — drawn before the dot so the dot stays crisp on top.
-    drawFlash(ctx, this.source.x, this.source.y, CONFIG.doppler.flashEmitColor, this.sourceFlash, 9);
+    // Sinusoidal wave along the central axis between source and observer.
+    // Drawn on top of wavefronts but below the source/observer dots so they
+    // remain crisp and the wave is plainly visible against the wavefront pattern.
+    if (this.showWave) this.drawXAxisWave();
 
-    // Source
-    ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath();
-    ctx.arc(this.source.x, this.source.y, 9, 0, Math.PI*2);
-    ctx.fill();
+    const sourceOnCanvas = this.source.x >= 0 && this.source.x <= this.cssW;
 
-    // Velocity arrow
-    if (Math.abs(this.v) > 0.005) {
-      const dir = Math.sign(this.v);
-      const len = clamp(Math.abs(this.v) * 60, 14, 60);
-      ctx.strokeStyle = '#1a1a1a';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(this.source.x, this.source.y);
-      ctx.lineTo(this.source.x + dir * len, this.source.y);
-      ctx.stroke();
+    if (sourceOnCanvas) {
+      // Source emission flash (green halo) — drawn before the dot so the dot stays crisp on top.
+      drawFlash(ctx, this.source.x, this.source.y, CONFIG.doppler.flashEmitColor, this.sourceFlash, 9);
+
+      // Source
       ctx.fillStyle = '#1a1a1a';
       ctx.beginPath();
-      ctx.moveTo(this.source.x + dir * len, this.source.y);
-      ctx.lineTo(this.source.x + dir * (len - 8), this.source.y - 5);
-      ctx.lineTo(this.source.x + dir * (len - 8), this.source.y + 5);
-      ctx.closePath();
+      ctx.arc(this.source.x, this.source.y, 9, 0, Math.PI*2);
       ctx.fill();
+
+      // Velocity arrow
+      if (Math.abs(this.v) > 0.005) {
+        const dir = Math.sign(this.v);
+        const len = clamp(Math.abs(this.v) * 60, 14, 60);
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(this.source.x, this.source.y);
+        ctx.lineTo(this.source.x + dir * len, this.source.y);
+        ctx.stroke();
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.moveTo(this.source.x + dir * len, this.source.y);
+        ctx.lineTo(this.source.x + dir * (len - 8), this.source.y - 5);
+        ctx.lineTo(this.source.x + dir * (len - 8), this.source.y + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else {
+      // Source has travelled off the canvas — draw an edge indicator so students still
+      // see "the source is still there, just off-screen, and still emitting".
+      this.drawOffCanvasSourceIndicator();
     }
 
     // Observer arrival flash (blue/red halo, colour = the wavefront's apparent shift)
@@ -1498,13 +1666,133 @@ const dopplerSim = {
     // Observer (eye)
     this.drawObserver(obsX, obsY);
 
-    // Direction label
+    // Direction labels
     ctx.fillStyle = '#555';
     ctx.font = '13px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('Source', this.source.x + 14, this.source.y - 12);
+    if (sourceOnCanvas) {
+      ctx.textAlign = 'left';
+      ctx.fillText('Source', this.source.x + 14, this.source.y - 12);
+    }
     ctx.textAlign = 'right';
     ctx.fillText('Observer', obsX - 18, obsY - 14);
+  },
+
+  drawXAxisWave() {
+    const ctx = this.ctx;
+    const yMid = this.cssH * CONFIG.doppler.centreYFrac;
+    const amp = CONFIG.doppler.waveAmplitude;
+    const sx = this.source.x;
+    const baseLambda = CONFIG.doppler.visualC / this.freq;
+    const taperWidth = 10; // px — amplitude fades to 0 within this distance of the source
+    const c = CONFIG.doppler.visualC;
+
+    // Anchor the wave to the most recent wavefront so its crests sit exactly on the
+    // wavefront circles at their crossings of the central axis. Successive wavefront
+    // crossings are spaced by λ_right (right side) and λ_left (left side), so cosine
+    // (with the wavefront crossing as origin) places a peak on every wavefront.
+    let xRefRight, xRefLeft;
+    if (this.wavefronts.length > 0) {
+      const wf = this.wavefronts[this.wavefronts.length - 1];
+      const r = (this.time - wf.t_emit) * c;
+      xRefRight = wf.x + r;
+      xRefLeft  = wf.x - r;
+    } else {
+      // No wavefronts (emission off): fall back to a phase-driven origin so the wave still moves.
+      xRefRight = sx + this.wavePhase;
+      xRefLeft  = sx - this.wavePhase;
+    }
+
+    // RIGHT of source: λ_right = λ₀(1 − v/c). Wave moves to the right at speed c.
+    const lambdaRight = baseLambda * (1 - this.v);
+    if (lambdaRight >= 1.5) {
+      const x0 = Math.max(8, sx);
+      const x1 = this.cssW - 8;
+      if (x1 > x0) {
+        ctx.strokeStyle = shiftColor(1 - this.v);
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        let started = false;
+        for (let x = x0; x <= x1; x += 1) {
+          const d = x - sx;
+          const taper = Math.min(1, d / taperWidth);
+          // cos puts a peak at x = xRefRight, x = xRefRight ± λ_right, ... — exactly the
+          // wavefront crossings of the central axis on the right side.
+          const y = yMid + amp * taper * Math.cos(2 * Math.PI * (x - xRefRight) / lambdaRight);
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    // LEFT of source: λ_left = λ₀(1 + v/c). Wave moves to the left at speed c.
+    const lambdaLeft = baseLambda * (1 + this.v);
+    if (lambdaLeft >= 1.5) {
+      const x0 = 8;
+      const x1 = Math.min(this.cssW - 8, sx);
+      if (x1 > x0) {
+        ctx.strokeStyle = shiftColor(1 + this.v);
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        let started = false;
+        for (let x = x0; x <= x1; x += 1) {
+          const d = sx - x; // positive distance to the left of the source
+          const taper = Math.min(1, d / taperWidth);
+          // Symmetric to the right: cos places a peak at every left-side wavefront crossing.
+          const y = yMid + amp * taper * Math.cos(2 * Math.PI * (xRefLeft - x) / lambdaLeft);
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+  },
+
+  drawOffCanvasSourceIndicator() {
+    const ctx = this.ctx;
+    const y = this.cssH * CONFIG.doppler.centreYFrac;
+    const onLeft = this.source.x < 0;
+    const margin = 10;
+    const tipX = onLeft ? margin : this.cssW - margin;
+    const baseX = onLeft ? margin + 14 : this.cssW - margin - 14;
+
+    // Triangle pointing toward where the source actually is (off-canvas).
+    ctx.beginPath();
+    ctx.moveTo(tipX, y);
+    ctx.lineTo(baseX, y - 10);
+    ctx.lineTo(baseX, y + 10);
+    ctx.closePath();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fill();
+
+    // Green flash overlay on the triangle: signals that the (off-screen) source has just emitted.
+    if (this.sourceFlash > 0) {
+      const rgb = hexToRgb(CONFIG.doppler.flashEmitColor);
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (this.sourceFlash * 0.95).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.moveTo(tipX, y);
+      ctx.lineTo(baseX, y - 10);
+      ctx.lineTo(baseX, y + 10);
+      ctx.closePath();
+      ctx.fill();
+      // Soft glow band along the edge so the flash is visible at distance
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (this.sourceFlash * 0.30).toFixed(3) + ')';
+      const glowW = 22;
+      const glowX = onLeft ? 0 : this.cssW - glowW;
+      ctx.fillRect(glowX, y - 22, glowW, 44);
+    }
+
+    // Label
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '600 13px sans-serif';
+    ctx.textAlign = onLeft ? 'left' : 'right';
+    const labelX = onLeft ? baseX + 6 : baseX - 6;
+    ctx.fillText(onLeft ? 'source ←' : 'source →', labelX, y + 4);
+
+    // Small "still emitting" caption underneath
+    ctx.fillStyle = '#555';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('off-screen, still emitting', labelX, y + 22);
   },
 
   drawTintedWavefront(cx, cy, r) {
@@ -1553,8 +1841,8 @@ const dopplerSim = {
     const z = -v;                              // z = -v/c (with c=1 in these units)
     const dlambda = lambdaObs - lambda0;
     const fObs = CONFIG.doppler.referenceFreqHz / (1 + z); // f' = f0 / (1+z)
-    document.getElementById('dopp-velocity-val').textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + ' c';
-    document.getElementById('dopp-frequency-val').textContent = this.freq.toFixed(1) + ' Hz';
+    setInputValue(document.getElementById('dopp-velocity-input'), v.toFixed(2));
+    setInputValue(document.getElementById('dopp-frequency-input'), this.freq.toFixed(1));
     document.getElementById('dopp-lambda0').textContent = lambda0.toFixed(0) + ' nm';
     document.getElementById('dopp-lambda-obs').textContent = lambdaObs.toFixed(1) + ' nm';
     document.getElementById('dopp-dlambda').textContent = (dlambda >= 0 ? '+' : '') + dlambda.toFixed(1) + ' nm';
@@ -1620,6 +1908,8 @@ const cosmoSim = {
   lastReadoutTime: 0,
   pulseTime: 0,
   pulseGalaxy: -1,
+  showWave: false,
+  wavePhase: 0,             // px — animates the wave along the x-axis
 
   init() {
     this.canvas = document.getElementById('cosmo-canvas');
@@ -1659,25 +1949,35 @@ const cosmoSim = {
     this.photon = null;
     this.pulseGalaxy = -1;
     this.pulseTime = 0;
+    this.wavePhase = 0;
   },
 
   bindControls() {
     if (this.controlsBound) return;
     this.controlsBound = true;
     const h0Slider = document.getElementById('cosmo-h0');
+    const h0Input = document.getElementById('cosmo-h0-input');
     const galaxySel = document.getElementById('cosmo-galaxy');
     const launchBtn = document.getElementById('cosmo-launch');
     const playBtn = document.getElementById('cosmo-play');
     const resetBtn = document.getElementById('cosmo-reset');
     const freezeChk = document.getElementById('cosmo-freeze');
+    const waveToggle = document.getElementById('cosmo-show-wave');
 
     // Sync state from any browser-restored input values
     this.H0 = parseFloat(h0Slider.value);
     this.emittingGalaxy = parseInt(galaxySel.value, 10);
     this.freezeGrid = freezeChk.checked;
+    this.showWave = waveToggle.checked;
 
     h0Slider.addEventListener('input', e => {
       this.H0 = parseFloat(e.target.value);
+      setInputValue(h0Input, this.H0.toFixed(0));
+      this.updateReadouts(true);
+      this.renderHubblePlot();
+    });
+    wireEditableInput(h0Input, h0Slider, () => {
+      this.H0 = parseFloat(h0Slider.value);
       this.updateReadouts(true);
       this.renderHubblePlot();
     });
@@ -1701,9 +2001,16 @@ const cosmoSim = {
       this.updateReadouts(true);
       drawSpectrum(this.specObs, 0);
       resetMeasurementFeedback('cosmo');
+      // Return playback to the playing state (Reset clears any auto-pause from a previous arrival).
+      this.paused = false;
+      playBtn.textContent = 'Pause';
+      playBtn.setAttribute('aria-pressed', 'true');
     });
     freezeChk.addEventListener('change', e => {
       this.freezeGrid = e.target.checked;
+    });
+    waveToggle.addEventListener('change', e => {
+      this.showWave = e.target.checked;
     });
   },
 
@@ -1721,6 +2028,15 @@ const cosmoSim = {
     };
     this.pulseGalaxy = this.emittingGalaxy;
     this.pulseTime = 0;
+    // If a prior arrival auto-paused the sim, resume so the new photon actually flies.
+    if (this.paused) {
+      this.paused = false;
+      const playBtn = document.getElementById('cosmo-play');
+      if (playBtn) {
+        playBtn.textContent = 'Pause';
+        playBtn.setAttribute('aria-pressed', 'true');
+      }
+    }
   },
 
   Hvis() { return this.H0 * CONFIG.cosmo.H0VisualPerKmsmpc; },
@@ -1746,6 +2062,9 @@ const cosmoSim = {
       if (this.a > CONFIG.cosmo.aMax) this.a = CONFIG.cosmo.aMax;
       this.time += dt;
     }
+    // Advance the x-axis wave phase even if grid is frozen (the wave is showing
+    // the current λ; freezing the grid just means a stops growing).
+    this.wavePhase += CONFIG.cosmo.waveSpeed * dt;
     if (this.photon && !this.photon.arrived) {
       const c_co = CONFIG.cosmo.photonComovingSpeedAtA1;
       this.photon.x_c += (c_co / this.a) * dt;
@@ -1755,6 +2074,13 @@ const cosmoSim = {
         this.photon.x_c = obsXC;
         this.photon.arrived = true;
         this.photon.finalZ = this.a / this.photon.a_emit - 1;
+        // Auto-pause: freeze the simulation so students can read the final state cleanly.
+        this.paused = true;
+        const playBtn = document.getElementById('cosmo-play');
+        if (playBtn) {
+          playBtn.textContent = 'Play';
+          playBtn.setAttribute('aria-pressed', 'false');
+        }
       }
     }
     if (this.pulseGalaxy >= 0) {
@@ -1807,6 +2133,10 @@ const cosmoSim = {
     ctx.moveTo(20, baseY);
     ctx.lineTo(this.cssW - 20, baseY);
     ctx.stroke();
+
+    // Sinusoidal wave along the central axis between emitter and observer.
+    // Drawn here so that galaxy dots and the photon packet remain on top.
+    if (this.showWave) this.drawXAxisWave(xRender, baseY);
 
     // Galaxies
     for (let i = 0; i < this.galaxies.length; i++) {
@@ -1863,6 +2193,64 @@ const cosmoSim = {
     if (this.freezeGrid) {
       ctx.fillStyle = '#b45309';
       ctx.fillText('grid frozen', this.cssW - 8, 32);
+    }
+  },
+
+  drawXAxisWave(xRender, baseY) {
+    const ctx = this.ctx;
+    // Wavelength: photon's current λ if a photon is in flight, else the rest λ_emit.
+    const lambda = this.photon
+      ? Math.max(2, this.photon.lambda)
+      : CONFIG.cosmo.photonLambdaEmit;
+    if (lambda < 1.5) return;
+
+    const yMid = baseY;
+    const amp = CONFIG.cosmo.waveAmplitude;
+    const sx = xRender(this.galaxies[this.emittingGalaxy].comoving);
+    const taperWidth = 10;
+
+    const ratio = this.photon
+      ? (this.photon.lambda / this.photon.lambda_emit)
+      : 1;
+    const colour = shiftColor(ratio);
+    ctx.lineWidth = 2.2;
+
+    // RIGHT of emitter (toward observer): wave moves rightward.
+    {
+      const x0 = Math.max(8, sx);
+      const x1 = this.cssW - 8;
+      if (x1 > x0) {
+        ctx.strokeStyle = colour;
+        ctx.beginPath();
+        let started = false;
+        for (let x = x0; x <= x1; x += 1) {
+          const d = x - sx;
+          const taper = Math.min(1, d / taperWidth);
+          const y = yMid + amp * taper * Math.sin(2 * Math.PI * (d - this.wavePhase) / lambda);
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    // LEFT of emitter: wave moves leftward (cosmological redshift is isotropic — same λ).
+    {
+      const x0 = 8;
+      const x1 = Math.min(this.cssW - 8, sx);
+      if (x1 > x0) {
+        ctx.strokeStyle = colour;
+        ctx.beginPath();
+        let started = false;
+        for (let x = x0; x <= x1; x += 1) {
+          const d = sx - x;
+          const taper = Math.min(1, d / taperWidth);
+          const y = yMid + amp * taper * Math.sin(2 * Math.PI * (d - this.wavePhase) / lambda);
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
     }
   },
 
@@ -2030,7 +2418,7 @@ const cosmoSim = {
     // shortcut: 1/H0 ≈ 977.8 / H0  (Gyr)
     const ageGyr = 977.8 / this.H0;
 
-    document.getElementById('cosmo-h0-val').textContent = this.H0.toFixed(0) + ' km/s/Mpc';
+    setInputValue(document.getElementById('cosmo-h0-input'), this.H0.toFixed(0));
     document.getElementById('cosmo-galaxy-val').textContent = this.galaxies[this.emittingGalaxy].label.replace(/G(\d)/, (_,d)=>'G'+'₁₂₃₄₅₆₇'[parseInt(d,10)-1]);
     document.getElementById('cosmo-a').textContent = this.a.toFixed(3);
     document.getElementById('cosmo-d').textContent = dPhys.toFixed(0) + ' Mpc';
