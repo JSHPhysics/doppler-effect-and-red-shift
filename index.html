@@ -128,7 +128,7 @@ main {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .canvas-wrap {
@@ -158,6 +158,11 @@ canvas.physics-canvas {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+/* When laid out side-by-side, the two control groups share the canvas's height
+   evenly. On narrow (wrapped) layouts the natural sizing is used instead. */
+.controls > .control-group {
+  flex: 1 1 auto;
 }
 
 .control-group {
@@ -688,6 +693,25 @@ button.help-btn:focus-visible {
   font-style: italic;
 }
 
+.readouts-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.readouts-panel > h3 {
+  margin: 0 0 10px 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.readouts-panel .readouts {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.readouts-panel .formula,
+.readouts-panel .compare-tooltip {
+  margin-top: 10px;
+}
+
 .measurement-panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -897,38 +921,39 @@ button.help-btn:focus-visible {
             </div>
           </div>
 
-          <div class="control-group">
-            <h3>Live readouts</h3>
-            <div class="readouts">
-              <div class="readout">
-                <div class="label">Emitted λ₀</div>
-                <div class="value" id="dopp-lambda0">600 nm</div>
-              </div>
-              <div class="readout">
-                <div class="label">Observed λ′</div>
-                <div class="value" id="dopp-lambda-obs">600 nm</div>
-              </div>
-              <div class="readout">
-                <div class="label">Δλ = λ′ − λ₀</div>
-                <div class="value" id="dopp-dlambda">0 nm</div>
-              </div>
-              <div class="readout primary">
-                <div class="label">Redshift z</div>
-                <div class="value" id="dopp-z">0.000</div>
-              </div>
-              <div class="readout full">
-                <div class="label">Observed frequency f ′</div>
-                <div class="value" id="dopp-fobs">5.00 × 10¹⁴ Hz</div>
-              </div>
-              <div class="shift-indicator full" id="dopp-shift-indicator">
-                <span class="swatch" id="dopp-shift-swatch" style="background:#888;"></span>
-                <span class="arrow" id="dopp-shift-arrow">●</span>
-                <span id="dopp-shift-text">No shift (source stationary)</span>
-              </div>
-            </div>
-            <div class="formula"><span class="var">λ′</span> = <span class="var">λ₀</span> (1 + <span class="var">v<sub>r</sub></span>/<span class="var">c</span>) &nbsp;&nbsp;<span class="var">v<sub>r</sub></span> = radial recession velocity from observer</div>
+        </div>
+      </div>
+
+      <div class="readouts-panel">
+        <h3>Live readouts</h3>
+        <div class="readouts">
+          <div class="readout">
+            <div class="label">Emitted λ₀</div>
+            <div class="value" id="dopp-lambda0">600 nm</div>
+          </div>
+          <div class="readout">
+            <div class="label">Observed λ′</div>
+            <div class="value" id="dopp-lambda-obs">600 nm</div>
+          </div>
+          <div class="readout">
+            <div class="label">Δλ = λ′ − λ₀</div>
+            <div class="value" id="dopp-dlambda">0 nm</div>
+          </div>
+          <div class="readout primary">
+            <div class="label">Redshift z</div>
+            <div class="value" id="dopp-z">0.000</div>
+          </div>
+          <div class="readout">
+            <div class="label">Observed frequency f ′</div>
+            <div class="value" id="dopp-fobs">5.00 × 10¹⁴ Hz</div>
+          </div>
+          <div class="shift-indicator full" id="dopp-shift-indicator">
+            <span class="swatch" id="dopp-shift-swatch" style="background:#888;"></span>
+            <span class="arrow" id="dopp-shift-arrow">●</span>
+            <span id="dopp-shift-text">No shift (source stationary)</span>
           </div>
         </div>
+        <div class="formula"><span class="var">λ′</span> = <span class="var">λ₀</span> (1 + <span class="var">v<sub>r</sub></span>/<span class="var">c</span>) &nbsp;&nbsp;<span class="var">v<sub>r</sub></span> = radial recession velocity from observer</div>
       </div>
 
       <div class="measurement-panel" id="dopp-measurement">
@@ -1053,39 +1078,40 @@ button.help-btn:focus-visible {
             </div>
           </div>
 
-          <div class="control-group">
-            <h3>Live readouts</h3>
-            <div class="readouts">
-              <div class="readout">
-                <div class="label">Scale factor a(t)</div>
-                <div class="value" id="cosmo-a">1.000</div>
-              </div>
-              <div class="readout">
-                <div class="label">Distance d</div>
-                <div class="value" id="cosmo-d">600 Mpc</div>
-              </div>
-              <div class="readout">
-                <div class="label">Recession v = H₀ d</div>
-                <div class="value" id="cosmo-v">42 000 km/s</div>
-              </div>
-              <div class="readout primary">
-                <div class="label">Redshift z</div>
-                <div class="value" id="cosmo-z">0.000</div>
-              </div>
-              <div class="readout full">
-                <div class="label">Hubble age ≈ 1/H₀</div>
-                <div class="value" id="cosmo-age">14.0 Gyr</div>
-              </div>
-              <div class="shift-indicator full" id="cosmo-shift-indicator">
-                <span class="swatch" id="cosmo-shift-swatch" style="background:#888;"></span>
-                <span class="arrow" id="cosmo-shift-arrow">●</span>
-                <span id="cosmo-shift-text">No photon yet — press “Launch photon”</span>
-              </div>
-            </div>
-            <div class="formula">1 + <span class="var">z</span> = <span class="var">a</span>(<span class="var">t</span><sub>obs</sub>) / <span class="var">a</span>(<span class="var">t</span><sub>emit</sub>) = <span class="var">λ</span><sub>obs</sub> / <span class="var">λ</span><sub>rest</sub></div>
-            <div class="compare-tooltip">Compare with Mode A's Doppler formula λ′ = λ₀ (1+v/c). Here, redshift is set by the <em>stretching ratio</em> of space, not a velocity through space.</div>
+        </div>
+      </div>
+
+      <div class="readouts-panel">
+        <h3>Live readouts</h3>
+        <div class="readouts">
+          <div class="readout">
+            <div class="label">Scale factor a(t)</div>
+            <div class="value" id="cosmo-a">1.000</div>
+          </div>
+          <div class="readout">
+            <div class="label">Distance d</div>
+            <div class="value" id="cosmo-d">600 Mpc</div>
+          </div>
+          <div class="readout">
+            <div class="label">Recession v = H₀ d</div>
+            <div class="value" id="cosmo-v">42 000 km/s</div>
+          </div>
+          <div class="readout primary">
+            <div class="label">Redshift z</div>
+            <div class="value" id="cosmo-z">0.000</div>
+          </div>
+          <div class="readout">
+            <div class="label">Hubble age ≈ 1/H₀</div>
+            <div class="value" id="cosmo-age">14.0 Gyr</div>
+          </div>
+          <div class="shift-indicator full" id="cosmo-shift-indicator">
+            <span class="swatch" id="cosmo-shift-swatch" style="background:#888;"></span>
+            <span class="arrow" id="cosmo-shift-arrow">●</span>
+            <span id="cosmo-shift-text">No photon yet — press “Launch photon”</span>
           </div>
         </div>
+        <div class="formula">1 + <span class="var">z</span> = <span class="var">a</span>(<span class="var">t</span><sub>obs</sub>) / <span class="var">a</span>(<span class="var">t</span><sub>emit</sub>) = <span class="var">λ</span><sub>obs</sub> / <span class="var">λ</span><sub>rest</sub></div>
+        <div class="compare-tooltip">Compare with Mode A's Doppler formula λ′ = λ₀ (1+v/c). Here, redshift is set by the <em>stretching ratio</em> of space, not a velocity through space.</div>
       </div>
 
       <div class="measurement-panel" id="cosmo-measurement">
