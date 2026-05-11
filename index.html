@@ -919,6 +919,10 @@ button.help-btn:focus-visible {
               <input type="checkbox" id="dopp-show-wave">
               <label for="dopp-show-wave">Show wave along x-axis (λ′)</label>
             </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="dopp-projection-mode" class="projection-mode-toggle">
+              <label for="dopp-projection-mode">Projection mode (lower-power render for classroom mirroring)</label>
+            </div>
           </div>
 
         </div>
@@ -1076,6 +1080,10 @@ button.help-btn:focus-visible {
               <input type="checkbox" id="cosmo-show-wave">
               <label for="cosmo-show-wave">Show wave along x-axis (λ)</label>
             </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="cosmo-projection-mode" class="projection-mode-toggle">
+              <label for="cosmo-projection-mode">Projection mode (lower-power render for classroom mirroring)</label>
+            </div>
           </div>
 
         </div>
@@ -1177,6 +1185,15 @@ button.help-btn:focus-visible {
 'use strict';
 
 /* ============================================================
+   RUNTIME — mutable state that affects rendering decisions
+   (e.g. "Projection mode" reduces per-frame GPU/CPU load).
+   ============================================================ */
+const RUNTIME = {
+  projectionMode: false,  // when true: cap DPR lower, reduce wavefront detail, cap rAF to ~30fps
+  projectionFrameMinDt: 0.030  // seconds — minimum dt between rendered frames in projection mode
+};
+
+/* ============================================================
    CONFIG — physics & visual constants. Tweak these in class.
    ============================================================ */
 const CONFIG = {
@@ -1189,7 +1206,8 @@ const CONFIG = {
     freqMin: 1, freqMax: 10, freqInitial: 4,
     maxWavefronts: 40,
     wavefrontMaxAge: 8,       // seconds (auto-cull)
-    wavefrontSegments: 36,    // arc segments per wavefront for tinted gradient
+    wavefrontSegments: 20,    // arc segments per wavefront for tinted gradient
+    wavefrontSegmentsProjection: 14, // coarser segmentation when projection mode is on
     referenceLambdaNm: 600,   // physics readouts use a reference wavelength of 600 nm
     referenceFreqHz: 5.0e14,  // c_real / 600 nm
     flashDurationSec: 0.13,   // emission & arrival flash decay (seconds)
@@ -1330,8 +1348,12 @@ function drawFlash(ctx, x, y, color, intensity, baseRadius) {
 }
 
 // Resize a CSS-sized canvas to its DPR-scaled backing store.
+// We cap DPR to keep fill rate manageable when projecting from a high-DPR iPad —
+// at projection distance the visual difference between DPR 2 and DPR 3 is negligible,
+// but the GPU load roughly halves.
 function fitCanvasToDPR(canvas) {
-  const dpr = window.devicePixelRatio || 1;
+  const cap = RUNTIME.projectionMode ? 1.75 : 2;
+  const dpr = Math.min(window.devicePixelRatio || 1, cap);
   const rect = canvas.getBoundingClientRect();
   const cssW = Math.max(1, rect.width);
   const cssH = Math.max(1, rect.height);
@@ -1383,16 +1405,20 @@ function renderLineReadings(targetEl, z) {
 
 function drawSpectrum(canvas, z) {
   const { ctx, cssW, cssH } = fitCanvasToDPR(canvas);
-  // rainbow background
-  for (let x = 0; x < cssW; x++) {
-    const nm = SPECTRUM_RANGE_MIN + (x / cssW) * (SPECTRUM_RANGE_MAX - SPECTRUM_RANGE_MIN);
-    const [r,g,b] = wavelengthToRGB(nm);
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
-    ctx.fillRect(x, 0, 1, cssH);
+  // Rainbow background: single GPU-interpolated linear gradient with ~30 colour stops.
+  // Replaces ~700 per-pixel fillRects (a major cost when projecting at 10 Hz × multiple strips).
+  const grad = ctx.createLinearGradient(0, 0, cssW, 0);
+  const STOPS = 30;
+  for (let i = 0; i <= STOPS; i++) {
+    const t = i / STOPS;
+    const nm = SPECTRUM_RANGE_MIN + t * (SPECTRUM_RANGE_MAX - SPECTRUM_RANGE_MIN);
+    const [r, g, b] = wavelengthToRGB(nm);
+    grad.addColorStop(t, 'rgb(' + r + ',' + g + ',' + b + ')');
   }
-  // absorption lines, shifted by (1+z)
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, cssW, cssH);
+  // Absorption lines, shifted by (1 + z)
   ctx.fillStyle = '#000';
-  ctx.strokeStyle = '#000';
   for (const line of SPECTRUM_LINES) {
     const observed = line.nm * (1 + z);
     const x = (observed - SPECTRUM_RANGE_MIN) / (SPECTRUM_RANGE_MAX - SPECTRUM_RANGE_MIN) * cssW;
@@ -1824,7 +1850,9 @@ const dopplerSim = {
   drawTintedWavefront(cx, cy, r) {
     const ctx = this.ctx;
     if (r < 1) return;
-    const segs = CONFIG.doppler.wavefrontSegments;
+    const segs = RUNTIME.projectionMode
+      ? CONFIG.doppler.wavefrontSegmentsProjection
+      : CONFIG.doppler.wavefrontSegments;
     const v = this.v;
     ctx.lineWidth = 1.6;
     for (let i = 0; i < segs; i++) {
@@ -2627,6 +2655,12 @@ function frame(ts) {
   }
   let dt = (ts - lastFrameTime) / 1000;
   if (!isFinite(dt) || dt < 0) dt = 0;
+  // Projection mode: skip frames so the rendered cadence caps near 30 fps.
+  // Physics dt grows on the rendered frames, so motion is still real-time.
+  if (RUNTIME.projectionMode && dt < RUNTIME.projectionFrameMinDt) {
+    rafHandle = requestAnimationFrame(frame);
+    return;
+  }
   if (dt > 0.1) dt = 0.016; // clamp on tab return / first frame
   lastFrameTime = ts;
   if (activeSim) {
@@ -2713,6 +2747,26 @@ document.addEventListener('visibilitychange', () => {
     lastFrameTime = performance.now();
   }
 });
+
+// Projection mode — global toggle accessible from both modes. The two checkboxes mirror
+// the same state, so flipping it in Mode A also flips it in Mode B.
+function setProjectionMode(on) {
+  RUNTIME.projectionMode = !!on;
+  const dToggle = document.getElementById('dopp-projection-mode');
+  const cToggle = document.getElementById('cosmo-projection-mode');
+  if (dToggle) dToggle.checked = RUNTIME.projectionMode;
+  if (cToggle) cToggle.checked = RUNTIME.projectionMode;
+  // Re-fit the active sim's canvases at the new DPR cap so the change takes effect immediately.
+  if (activeSim && typeof activeSim.handleResize === 'function') {
+    activeSim.handleResize();
+  }
+}
+document.getElementById('dopp-projection-mode').addEventListener('change', e => setProjectionMode(e.target.checked));
+document.getElementById('cosmo-projection-mode').addEventListener('change', e => setProjectionMode(e.target.checked));
+// Sync from any browser-autofilled state on load
+if (document.getElementById('dopp-projection-mode').checked || document.getElementById('cosmo-projection-mode').checked) {
+  setProjectionMode(true);
+}
 
 // Measurement calculator bindings (these elements are static; bind once on boot).
 document.getElementById('dopp-calc-check').addEventListener('click', () => checkMeasurement('dopp'));
